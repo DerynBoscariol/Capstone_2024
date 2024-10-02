@@ -17,7 +17,7 @@ export default function Home() {
             setAllConcerts(data);
           } catch (error) {
             setError(error.message); // Set error message
-          } finally { 
+          } finally {
             setLoading(false); // Set loading to false
           }
         };
