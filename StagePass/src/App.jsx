@@ -1,15 +1,27 @@
 import Header from './components/Header'
 import Footer from './components/Footer'
+import Home from './routes/Home'
+import ConcertDetails from './routes/ConcertDetails'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
 
 function App() {
 
   return (
-    <>
-      <Header/>
-
-      <Footer/>
-    </>
+    <div className="page">
+      <BrowserRouter>
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home/>} />
+          <Route path="/ConcertDetails/:id" element={<ConcertDetails />} />
+          {/*<Route path="yourTickets" element={<YourTickets />} />
+          <Route path="settings" element={<Settings/>}/>
+          <Route path="newConcert" element={<NewConcert/>}/>
+          <Route path="yourConcerts" element={<YourConcerts />} /> */}
+        </Routes>
+        <Footer />
+      </BrowserRouter>
+    </div>
   )
 }
 

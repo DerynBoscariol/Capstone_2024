@@ -1,7 +1,9 @@
 
 function SiteName() {
 return (
-<h2 id="site-name"><a href="/">StagePass</a></h2>
+<h2 id="site-name">
+    <a href="/">Stage Pass</a>
+</h2>
 );
 }
 export default SiteName;

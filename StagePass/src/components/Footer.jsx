@@ -1,6 +1,6 @@
 function Footer() {
     return (
-    <p> &copy; Copyright Deryn Boscariol, 2024</p>
+    <p className="text-center"> &copy; Copyright Deryn Boscariol, 2024</p>
         )
     }
     export default Footer;
