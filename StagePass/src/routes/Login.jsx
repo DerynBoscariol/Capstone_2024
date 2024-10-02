@@ -23,13 +23,14 @@ export default function Login() {
             });
     
             if (!response.ok) {
-                throw new Error('Invalid email or password');
+                const errorData = await response.json(); // Get error data
+                throw new Error(errorData.message || 'Invalid email or password');
             }
     
             const data = await response.json();
             localStorage.setItem('token', data.token); // Save token to local storage
-            localStorage.setItem('user', JSON.stringify(data.user)); // Save user info
-            setUser(data.user); // Set user in context
+            localStorage.setItem('user', JSON.stringify({ username: data.username })); // Save user info correctly
+            setUser({ username: data.username }); // Set user in context
             navigate('/'); 
         } catch (error) {
             setError(error.message);
@@ -38,8 +39,6 @@ export default function Login() {
         }
     };
     
-    
-
     return (
         <div>
             <h1>Login</h1>
