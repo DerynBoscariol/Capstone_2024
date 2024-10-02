@@ -1,5 +1,5 @@
-import { createContext, useContext, useState } from 'react';
-import PropTypes from 'prop-types'; // Import PropTypes
+import { createContext, useContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 // Create a context for user information
 const UserContext = createContext();
@@ -8,8 +8,14 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
         const storedUser = localStorage.getItem('user');
-        return storedUser ? JSON.parse(storedUser) : null; // Load user from localStorage
-    }); // Store user information
+        try {
+            // Check if storedUser is not null or undefined before parsing
+            return storedUser ? JSON.parse(storedUser) : null; // Load user from localStorage
+        } catch (error) {
+            console.error("Error parsing user data from localStorage:", error);
+            return null; // Fallback if parsing fails
+        }
+    });
 
     const handleLogout = () => {
         setUser(null); // Clear user info
@@ -18,13 +24,21 @@ export const UserProvider = ({ children }) => {
         // Optionally redirect or do other logout tasks
     };
 
+    // Effect to keep localStorage in sync with user state
+    useEffect(() => {
+        if (user) {
+            localStorage.setItem('user', JSON.stringify(user)); // Save user info to localStorage
+        } else {
+            localStorage.removeItem('user'); // Remove user info from localStorage if user is null
+        }
+    }, [user]);
+
     return (
         <UserContext.Provider value={{ user, setUser, handleLogout }}>
             {children}
         </UserContext.Provider>
     );
-};
-
+}
 
 // Define prop types for the UserProvider
 UserProvider.propTypes = {
@@ -35,5 +49,4 @@ UserProvider.propTypes = {
 export const useUser = () => {
     return useContext(UserContext);
 };
-
 
