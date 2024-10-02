@@ -1,6 +1,10 @@
 import { useState } from 'react';
+import { useUser } from '../UserContext'; 
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
+    const { setUser } = useUser(); 
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
@@ -10,31 +14,35 @@ export default function Login() {
         e.preventDefault();
         setLoading(true);
         setError(null);
-
+    
         try {
             const response = await fetch('http://localhost:3000/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
-
+    
             if (!response.ok) {
                 throw new Error('Invalid email or password');
             }
-
+    
             const data = await response.json();
             localStorage.setItem('token', data.token); // Save token to local storage
-            // Redirect user or update UI as needed
+            localStorage.setItem('user', JSON.stringify(data.user)); // Save user info
+            setUser(data.user); // Set user in context
+            navigate('/'); 
         } catch (error) {
             setError(error.message);
         } finally {
             setLoading(false);
         }
     };
+    
+    
 
     return (
         <div>
-            <h2>Login</h2>
+            <h1>Login</h1>
             <form onSubmit={handleSubmit}>
                 <input
                     type="email"

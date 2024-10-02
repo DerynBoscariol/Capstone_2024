@@ -1,66 +1,64 @@
 import { useState } from 'react';
 
-export default function Register() {
+const Register = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(''); // State for error messages
 
-    const handleSubmit = async (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setError(null);
-
         try {
             const response = await fetch('http://localhost:3000/api/register', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({ username, email, password }),
             });
-
-            if (!response.ok) {
-                throw new Error('Registration failed');
+            const data = await response.json();
+            if (response.ok) {
+                console.log(data.message); // Handle successful registration
+                // Optionally redirect or update UI
+            } else {
+                setError(data.message); // Set error message from backend
             }
-
-            // Optionally, redirect to login page or show a success message
         } catch (error) {
-            setError(error.message);
-        } finally {
-            setLoading(false);
+            console.error('Registration error:', error);
+            setError('Registration failed'); // General error message
         }
     };
 
     return (
-        <div>
-            <h2>Register</h2>
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                />
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                />
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Registering...' : 'Register'}
-                </button>
-                {error && <p>{error}</p>}
-            </form>
-        </div>
+        <main>
+        <h1>Register for an Account</h1>
+        <form onSubmit={handleRegister}>
+            {error && <p style={{ color: 'red' }}>{error}</p>} {/* Display error message */}
+            <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Username"
+                required
+            />
+            <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+            />
+            <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+            />
+            <button type="submit">Register</button>
+        </form>
+        </main>
     );
-}
+};
+
+export default Register;

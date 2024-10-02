@@ -59,7 +59,7 @@ app.post('/api/login', async (req, res) => {
 
     if (user && (await bcrypt.compare(password, user.password))) {
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' }); // Use your secret key from environment variable
-        return res.json({ message: 'Login successful', token });
+        return res.json({ message: 'Login successful', token, username: user.username  });
     }
     return res.status(400).json({ message: 'Invalid credentials' }); // Handle invalid login
 });
@@ -85,37 +85,51 @@ app.get('/api/protected', authenticateToken, (req, res) => {
 // MongoDB functions
 async function connection() {
     await client.connect();
-    let db = client.db("Capstone2024"); // Select the Capstone2024 database
+    let db = client.db("Capstone2024");
     return db;
 }
 
 async function getAllConcerts() {
-    let db = await connection(); // Await result of connection() and store the returned db
-    var results = db.collection("tables").find({}); // {} as the query means no filter, so select all
+    let db = await connection(); 
+    var results = db.collection("tables").find({});
     let res = await results.toArray();
     return res;
 }
 
 // Function to add user to the database
 app.post('/api/register', async (req, res) => {
-    const { username, email, password } = req.body;
-    const db = await connection();
-    const existingUser = await db.collection('users').findOne({ email });
+  const { username, email, password } = req.body;
 
-    if (existingUser) {
-        return res.status(400).json({ message: 'User already exists' }); // Handle existing user
-    }
+  // Validate request body
+  if (!username || !email || !password) {
+      return res.status(400).json({ message: 'All fields are required.' });
+  }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+  const db = await connection();
+  
+  // Check if the user already exists
+  const existingUser = await db.collection('users').findOne({ email });
+  if (existingUser) {
+      return res.status(409).json({ message: 'User already exists.' }); // Conflict
+  }
 
-    await db.collection('users').insertOne({
-        username,
-        email,
-        password: hashedPassword,
-    });
-
-    res.status(201).json({ message: 'User registered successfully' });
+  try {
+      // Hash the password before storing it
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      await db.collection('users').insertOne({
+          username,
+          email,
+          password: hashedPassword,
+      });
+  
+      res.status(201).json({ message: 'User registered successfully' });
+  } catch (error) {
+      console.error('Registration error:', error); // Log the error for debugging
+      res.status(500).json({ message: 'Registration failed' }); // Internal server error
+  }
 });
+
 
 // Set up server listening
 app.listen(port, () => {
