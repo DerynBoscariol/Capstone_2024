@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom'; 
+import { useEffect, useState, useCallback } from 'react';
 
 const YourConcerts = () => {
     const [concerts, setConcerts] = useState([]);
@@ -10,7 +10,7 @@ const YourConcerts = () => {
         return localStorage.getItem('token'); // JWT token in localStorage
     };
 
-    const fetchConcerts = async () => {
+    const fetchConcerts = useCallback(async () => { // Use useCallback to memoize the function
         setLoading(true);
         setError(null); // Reset error state
         const token = getToken();
@@ -45,11 +45,11 @@ const YourConcerts = () => {
         } finally {
             setLoading(false); // Stop loading
         }
-    };
+    }, []); // Add empty dependency array since getToken is stable
 
     useEffect(() => {
         fetchConcerts();
-    }, []);
+    }, [fetchConcerts]); // Include fetchConcerts in the dependency array
 
     // Get today's date
     const today = new Date();
