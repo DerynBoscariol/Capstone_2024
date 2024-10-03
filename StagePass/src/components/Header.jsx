@@ -1,10 +1,10 @@
 import SiteName from "./SiteName";
 import { useUser } from "../UserContext"; // Import the useUser hook
-import { Link } from 'react-router-dom'; // Import Link from react-router-dom
+import { Link } from 'react-router-dom'; 
 
 function Header() {
     const { user, handleLogout } = useUser(); // Access user info and handleLogout from UserContext
-
+    console.log("user data:" + user);
     return (
         <header className="d-flex flex-wrap justify-content-between align-items-center py-3 px-4 mb-4 border-bottom">
             <div className="d-flex align-items-center">
@@ -22,28 +22,32 @@ function Header() {
                         aria-label="Search"
                     />
                 </form>
+                {/* Conditionally render Login/Register buttons or Dropdown */}
+                {user ? (
+                    <div className="dropdown">
+                        <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            {user.username}
+                        </button>
+                        <ul className="dropdown-menu">
+                            <li><Link className="dropdown-item" to="#">Your Tickets</Link></li>
 
-                <div className="dropdown">
-                    <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        {user ? user.username : "Login/Register"}
-                    </button>
-                    <ul className="dropdown-menu">
-                        {user ? (
-                            <>
-                                <li><Link className="dropdown-item" to="#">Your Tickets</Link></li>
-                                <li><Link className="dropdown-item" to="#">Your Concerts</Link></li>
-                                <li><Link className="dropdown-item" to="#">Plan a New Concert</Link></li>
-                                <li><Link className="dropdown-item" to="#">Settings</Link></li>
-                                <li><a className="dropdown-item" href="#" onClick={handleLogout}>Logout</a></li>
-                            </>
-                        ) : (
-                            <>
-                                <li><Link className="dropdown-item" to="/login">Login</Link></li>
-                                <li><Link className="dropdown-item" to="/register">Register</Link></li>
-                            </>
-                        )}
-                    </ul>
-                </div>
+                            {/* Show these options only if the user is an organizer */}
+                            {user && user.organizer && (
+                                <>
+                                    <li><Link className="dropdown-item" to="#">Your Concerts</Link></li>
+                                    <li><Link className="dropdown-item" to="/NewConcert">Plan a New Concert</Link></li>
+                                </>
+                            )}
+                            <li><Link className="dropdown-item" to="#">Settings</Link></li>
+                            <li><a className="dropdown-item" href="#" onClick={handleLogout}>Logout</a></li>
+                        </ul>
+                    </div>
+                ) : (
+                    <div className="d-flex">
+                        <Link to="/login" className="btn btn-primary me-2">Login</Link>
+                        <Link to="/register" className="btn btn-secondary">Register</Link>
+                    </div>
+                )}
             </div>
         </header>
     );

@@ -1,6 +1,8 @@
 function Footer() {
     return (
-    <p className="text-center"> &copy; Copyright Deryn Boscariol, 2024</p>
-        )
+        <footer className="text-center py-3">
+            <p>&copy; 2024 Deryn Boscariol. All rights reserved.</p>
+        </footer>
+    );
     }
     export default Footer;

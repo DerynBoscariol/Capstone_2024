@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { formatDate, formatTime } from '../utils';
 
 export default function ConcertDetails() {
     const { id } = useParams(); 
@@ -51,18 +52,18 @@ export default function ConcertDetails() {
         <main id="main" className="mx-4">
             <h1>{concert.artist} at {concert.venue}</h1>
             <p>Tour: {concert.tour}</p>
-            <p>Date: {concert.date}</p>
-            <p>Time: {concert.time}</p>
+            <p>Date: {formatDate(concert.date)}</p>
+            <p>Time: {formatTime(concert.time)}</p>
             <p>Description: {concert.description}</p>
             <p>Address: {concert.address}</p>
             <p>Rules: {concert.rules}</p>
             <p>Organizer: {concert.organizer}</p>
             <h3>Ticket Information</h3>
             <p>Ticket type: {concert.tickets.type}</p>
-            <p>Price: ${concert.tickets.price}</p>
+            <p>Price: ${concert.tickets.price.toFixed(2)}</p>
             <button className="btn btn-primary" onClick={() => setShowModal(true)}>Get Tickets</button>
 
-            {/* Bootstrap Modal */}
+            {/* Purchase Modal */}
             <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ display: showModal ? 'block' : 'none' }} tabIndex="-1" role="dialog" aria-labelledby="ticketModalLabel" aria-hidden={!showModal}>
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
@@ -71,7 +72,7 @@ export default function ConcertDetails() {
                         </div>
                         <div className="modal-body">
                             <p>Would you like to buy tickets for {concert.artist} at {concert.venue}?</p>
-                            <p>Price per ticket: ${concert.tickets.price}</p>
+                            <p>Price per ticket: ${concert.ticket.price.toFixed(2)}</p>
                             
                             {/* Ticket Quantity Selection */}
                             <div className="d-flex align-items-center">

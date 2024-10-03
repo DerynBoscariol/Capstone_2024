@@ -51,6 +51,46 @@ app.get('/api/ConcertDetails/:id', async (req, res) => {
     }
 });
 
+// Plan a new concert endpoint
+app.post('/api/NewConcert', async (req, res) => {
+    const { artist, venue, tour, date, time, description, address, rules, organizer, tickets } = req.body;
+
+    // Validate required fields
+    if (!artist || !venue || !tour || !date || !time || !description || !address || !organizer || !tickets || !tickets.type || !tickets.price || !tickets.numAvail) {
+        return res.status(400).json({ message: 'Please provide all required fields.' });
+    }
+
+    try {
+        const db = await connection();
+        const concert = {
+            artist,
+            venue,
+            tour,
+            date,
+            time,
+            description,
+            address,
+            rules,
+            organizer,
+            tickets: {
+                type: tickets.type,
+                price: tickets.price,
+                numAvail: tickets.numAvail
+            }
+        };
+
+        // Insert concert into database
+        await db.collection('tables').insertOne(concert);
+
+        return res.status(201).json({ message: 'Concert created successfully!', concert });
+    } catch (error) {
+        console.error('Error creating concert:', error);
+        return res.status(500).json({ message: 'Failed to create concert.' });
+    }
+});
+
+
+
 // User login endpoint
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
@@ -58,11 +98,17 @@ app.post('/api/login', async (req, res) => {
     const user = await db.collection('users').findOne({ email });
 
     if (user && (await bcrypt.compare(password, user.password))) {
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' }); // Use your secret key from environment variable
-        return res.json({ message: 'Login successful', token, username: user.username  });
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' }); // Use secret key from environment variable
+        return res.json({ 
+            message: 'Login successful', 
+            token, 
+            username: user.username,
+            organizer: user.organizer 
+        });
     }
-    return res.status(400).json({ message: 'Invalid credentials' }); // Handle invalid login
+    return res.status(400).json({ message: 'Invalid credentials' }); 
 });
+
 
 // Middleware for user authentication (add to any routes that require user credentials/login)
 const authenticateToken = (req, res, next) => {
@@ -96,9 +142,9 @@ async function getAllConcerts() {
     return res;
 }
 
-// Function to add user to the database
+// Register function to add user to the database
 app.post('/api/register', async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, organizer } = req.body;
 
   // Validate request body
   if (!username || !email || !password) {
@@ -106,21 +152,19 @@ app.post('/api/register', async (req, res) => {
   }
 
   const db = await connection();
-  
   // Check if the user already exists
   const existingUser = await db.collection('users').findOne({ email });
   if (existingUser) {
       return res.status(409).json({ message: 'User already exists.' }); // Conflict
   }
-
   try {
       // Hash the password before storing it
       const hashedPassword = await bcrypt.hash(password, 10);
-  
       await db.collection('users').insertOne({
           username,
           email,
           password: hashedPassword,
+          organizer: organizer || false,
       });
   
       res.status(201).json({ message: 'User registered successfully' });

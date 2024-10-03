@@ -4,6 +4,8 @@ import Footer from './components/Footer';
 import Home from './routes/Home';
 import Login from './routes/Login';
 import Register from './routes/Register';
+import NewConcert from './routes/NewConcert';
+import OrganizerRoute from './components/OrganizerRoute';
 import ConcertDetails from './routes/ConcertDetails';
 import { UserProvider } from './UserContext';
 import './App.css';
@@ -12,17 +14,22 @@ function AppWrapper() {
     const navigate = useNavigate();
 
     return (
-        <UserProvider navigate={navigate}>
-            <Header />
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/ConcertDetails/:id" element={<ConcertDetails />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-            </Routes>
-            <Footer />
-        </UserProvider>
-    );
+      <UserProvider navigate={navigate}>
+          <div className="d-flex flex-column min-vh-100">
+              <Header />
+              <main className="flex-grow-1">
+                  <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/ConcertDetails/:id" element={<ConcertDetails />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/NewConcert" element={<OrganizerRoute><NewConcert /></OrganizerRoute>} />
+                  </Routes>
+              </main>
+              <Footer />
+          </div>
+      </UserProvider>
+  );
 }
 
 export default function App() {
