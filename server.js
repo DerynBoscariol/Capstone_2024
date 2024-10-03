@@ -1,34 +1,137 @@
+// Import required modules
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const dotenv = require("dotenv");
-const { ObjectId } = require('mongodb'); 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+// Load environment variables
 dotenv.config();
 
+// Initialize Express application
 const app = express();
 const port = process.env.PORT || "3000";
 
+// MongoDB connection
 const dbUrl = process.env.DB_URL;
-const client = new MongoClient(dbUrl); 
+const client = new MongoClient(dbUrl);
+let db;
 
+// Initialize database connection
+const initDB = async () => {
+    await client.connect();
+    db = client.db("Capstone2024");
+    console.log("Database connected!");
+};
+
+// Call initDB when the server starts
+initDB().catch(console.error);
+
+// Middleware configuration
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cors({ origin: "*" })); // Allow requests from all servers
 
-// Allow requests from all servers
-app.use(cors({
-  origin: "*"
-})); 
+// Authentication middleware
+const authenticateToken = (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1]; // Extract token from the Authorization header
+
+    if (!token) {
+        console.log('No token provided');
+        return res.status(401).json({ message: 'Unauthorized' }); // Return 401 if no token is found
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) {
+            console.error('Token verification error:', err.message); // Log the error message
+            return res.status(403).json({ message: 'Forbidden' }); // Return 403 if token is invalid
+        }
+
+        req.user = user; // Attach user info to request
+        console.log('Authenticated User:', user); // Log the user object for debugging
+        next(); // Proceed to the next middleware or route handler
+    });
+};
 
 // API endpoints
 
+// User registration endpoint
+app.post('/api/register', async (req, res) => {
+    const { username, email, password, organizer } = req.body;
+
+    // Validate request body
+    if (!username || !email || !password) {
+        return res.status(400).json({ message: 'All fields are required.' });
+    }
+
+    try {
+        // Check if the user already exists
+        const existingUser = await db.collection('users').findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ message: 'User already exists.' }); // Conflict
+        }
+
+        // Hash the password before storing it
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await db.collection('users').insertOne({
+            username,
+            email,
+            password: hashedPassword,
+            organizer: organizer || false,
+        });
+
+        res.status(201).json({ message: 'User registered successfully' });
+    } catch (error) {
+        console.error('Registration error:', error); // Log the error for debugging
+        res.status(500).json({ message: 'Registration failed' }); // Internal server error
+    }
+});
+
+// User login endpoint
+app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await db.collection('users').findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({ message: 'User not found.' }); // Clearer error if the user is not found
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        
+        if (isPasswordValid) {
+            const token = jwt.sign(
+                { id: user._id, username: user.username }, // Include the username
+                process.env.JWT_SECRET,
+                { expiresIn: '2d' }
+            );
+            return res.json({ 
+                message: 'Login successful', 
+                token, 
+                username: user.username,
+                organizer: user.organizer 
+            });
+        } else {
+            return res.status(400).json({ message: 'Invalid password.' }); // More specific error
+        }
+    } catch (error) {
+        console.error('Login error:', error); // Log any server errors
+        return res.status(500).json({ message: 'Internal server error.' }); // Handle any other server errors
+    }
+});
+
 // Returns all concerts
-app.get("/api/AllConcerts", async (request, response) => {
-    let concerts = await getAllConcerts();
-    response.json(concerts); // Send JSON object with appropriate JSON headers
+app.get("/api/AllConcerts", async (req, res) => {
+    try {
+        const concerts = await db.collection("tables").find({}).toArray();
+        res.json(concerts); // Send JSON object with appropriate JSON headers
+    } catch (error) {
+        console.error('Error fetching all concerts:', error); // Log any server errors
+        res.status(500).json({ message: 'Failed to fetch concerts' });
+    }
 });
 
 // Route to find a concert by ID
@@ -36,7 +139,7 @@ app.get('/api/ConcertDetails/:id', async (req, res) => {
     try {
         const concertId = req.params.id; // Get the ID from the URL
         console.log("Concert ID: ", concertId); // Log the ID here
-        const db = await connection(); // Connect to the database
+
         const concert = await db.collection("tables").findOne({ _id: new ObjectId(concertId) }); // Convert to ObjectId
 
         if (!concert) {
@@ -51,17 +154,17 @@ app.get('/api/ConcertDetails/:id', async (req, res) => {
     }
 });
 
-// Plan a new concert endpoint
-app.post('/api/NewConcert', async (req, res) => {
-    const { artist, venue, tour, date, time, description, address, rules, organizer, tickets } = req.body;
+// Plan a new concert endpoint - ORGANIZER
+app.post('/api/NewConcert', authenticateToken, async (req, res) => {
+    const { artist, venue, tour, date, time, description, address, rules, tickets } = req.body;
+    const organizerUsername = req.user.username; // Get the organizer's username from the token
 
     // Validate required fields
-    if (!artist || !venue || !tour || !date || !time || !description || !address || !organizer || !tickets || !tickets.type || !tickets.price || !tickets.numAvail) {
+    if (!artist || !venue || !tour || !date || !time || !description || !address || !tickets || !tickets.type || !tickets.price || !tickets.numAvail) {
         return res.status(400).json({ message: 'Please provide all required fields.' });
     }
 
     try {
-        const db = await connection();
         const concert = {
             artist,
             venue,
@@ -71,7 +174,7 @@ app.post('/api/NewConcert', async (req, res) => {
             description,
             address,
             rules,
-            organizer,
+            organizer: organizerUsername, // Use the username from the authenticated user
             tickets: {
                 type: tickets.type,
                 price: tickets.price,
@@ -89,91 +192,31 @@ app.post('/api/NewConcert', async (req, res) => {
     }
 });
 
+// Your Concerts endpoint - ORGANIZER
+app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
+    console.log('Request Headers:', req.headers); // Log headers for debugging
+    const organizerUsername = req.user?.username;  // Get the organizer's username
 
-
-// User login endpoint
-app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
-    const db = await connection();
-    const user = await db.collection('users').findOne({ email });
-
-    if (user && (await bcrypt.compare(password, user.password))) {
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' }); // Use secret key from environment variable
-        return res.json({ 
-            message: 'Login successful', 
-            token, 
-            username: user.username,
-            organizer: user.organizer 
-        });
+    if (!organizerUsername) {
+        console.log('Organizer username is missing.');
+        return res.status(400).json({ message: 'Organizer username is required.' });
     }
-    return res.status(400).json({ message: 'Invalid credentials' }); 
+
+    try {
+        const concerts = await db.collection('tables').find({ organizer: organizerUsername }).toArray();
+        console.log('Fetched concerts:', concerts); // Log the concerts fetched
+        return res.json(concerts);
+    } catch (error) {
+        console.error('Error fetching concerts:', error.message); // Log the error message
+        return res.status(500).json({ message: 'Failed to fetch concerts' });
+    }
 });
 
-
-// Middleware for user authentication (add to any routes that require user credentials/login)
-const authenticateToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1]; // Extract token from the Authorization header
-
-    if (!token) return res.sendStatus(401); // Unauthorized
-
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403); // Forbidden
-        req.user = user; // Attach user info to request
-        next(); // Proceed to the next middleware or route handler
-    });
-};
 
 // Example of a protected route
 app.get('/api/protected', authenticateToken, (req, res) => {
     res.json({ message: 'This is a protected route!', user: req.user });
 });
-
-// MongoDB functions
-async function connection() {
-    await client.connect();
-    let db = client.db("Capstone2024");
-    return db;
-}
-
-async function getAllConcerts() {
-    let db = await connection(); 
-    var results = db.collection("tables").find({});
-    let res = await results.toArray();
-    return res;
-}
-
-// Register function to add user to the database
-app.post('/api/register', async (req, res) => {
-  const { username, email, password, organizer } = req.body;
-
-  // Validate request body
-  if (!username || !email || !password) {
-      return res.status(400).json({ message: 'All fields are required.' });
-  }
-
-  const db = await connection();
-  // Check if the user already exists
-  const existingUser = await db.collection('users').findOne({ email });
-  if (existingUser) {
-      return res.status(409).json({ message: 'User already exists.' }); // Conflict
-  }
-  try {
-      // Hash the password before storing it
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await db.collection('users').insertOne({
-          username,
-          email,
-          password: hashedPassword,
-          organizer: organizer || false,
-      });
-  
-      res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-      console.error('Registration error:', error); // Log the error for debugging
-      res.status(500).json({ message: 'Registration failed' }); // Internal server error
-  }
-});
-
 
 // Set up server listening
 app.listen(port, () => {

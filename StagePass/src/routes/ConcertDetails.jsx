@@ -49,19 +49,32 @@ export default function ConcertDetails() {
     };
 
     return (
-        <main id="main" className="mx-4">
-            <h1>{concert.artist} at {concert.venue}</h1>
-            <p>Tour: {concert.tour}</p>
-            <p>Date: {formatDate(concert.date)}</p>
-            <p>Time: {formatTime(concert.time)}</p>
-            <p>Description: {concert.description}</p>
-            <p>Address: {concert.address}</p>
-            <p>Rules: {concert.rules}</p>
-            <p>Organizer: {concert.organizer}</p>
-            <h3>Ticket Information</h3>
-            <p>Ticket type: {concert.tickets.type}</p>
-            <p>Price: ${concert.tickets.price.toFixed(2)}</p>
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>Get Tickets</button>
+        <main id="main" className="container mt-4">
+            <h1 className="text-center mb-4">{concert.artist} at {concert.venue}</h1>
+            
+            <div className="card mb-4">
+                <div className="card-body">
+                    <h5 className="card-title">Concert Details</h5>
+                    <p className="card-text"><strong>Tour:</strong> {concert.tour}</p>
+                    <p className="card-text"><strong>Date:</strong> {formatDate(concert.date)}</p>
+                    <p className="card-text"><strong>Time:</strong> {formatTime(concert.time)}</p>
+                    <p className="card-text"><strong>Description:</strong> {concert.description}</p>
+                    <p className="card-text"><strong>Address:</strong> {concert.address}</p>
+                    <p className="card-text"><strong>Rules:</strong> {concert.rules}</p>
+                    <p className="card-text"><strong>Organizer:</strong> {concert.organizer}</p>
+                </div>
+            </div>
+
+            <h3 className="text-center mb-4">Ticket Information</h3>
+            <div className="card mb-4">
+                <div className="card-body">
+                    <p className="card-text"><strong>Ticket Type:</strong> {concert.tickets.type}</p>
+                    <p className="card-text"><strong>Price:</strong> ${concert.tickets.price.toFixed(2)}</p>
+                    <div className="text-center">
+                        <button className="btn btn-primary" onClick={() => setShowModal(true)}>Get Tickets</button>
+                    </div>
+                </div>
+            </div>
 
             {/* Purchase Modal */}
             <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ display: showModal ? 'block' : 'none' }} tabIndex="-1" role="dialog" aria-labelledby="ticketModalLabel" aria-hidden={!showModal}>
@@ -72,10 +85,10 @@ export default function ConcertDetails() {
                         </div>
                         <div className="modal-body">
                             <p>Would you like to buy tickets for {concert.artist} at {concert.venue}?</p>
-                            <p>Price per ticket: ${concert.ticket.price.toFixed(2)}</p>
+                            <p><strong>Price per ticket:</strong> ${concert.tickets.price.toFixed(2)}</p>
                             
                             {/* Ticket Quantity Selection */}
-                            <div className="d-flex align-items-center">
+                            <div className="d-flex justify-content-center align-items-center">
                                 <button 
                                     className="btn btn-secondary"
                                     onClick={() => setTicketQuantity(prev => Math.max(1, prev - 1))}>
@@ -90,7 +103,7 @@ export default function ConcertDetails() {
                             </div>
                             
                             {/* Total Price Display */}
-                            <p className="mt-3">Total Price: ${totalPrice}</p>
+                            <p className="mt-3"><strong>Total Price:</strong> ${totalPrice.toFixed(2)}</p>
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
@@ -100,6 +113,7 @@ export default function ConcertDetails() {
                 </div>
             </div>
         </main>
+
     );
 }
 

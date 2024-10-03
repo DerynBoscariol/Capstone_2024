@@ -5,9 +5,10 @@ import Home from './routes/Home';
 import Login from './routes/Login';
 import Register from './routes/Register';
 import NewConcert from './routes/NewConcert';
+import YourConcerts from './routes/YourConcerts';
 import OrganizerRoute from './components/OrganizerRoute';
 import ConcertDetails from './routes/ConcertDetails';
-import { UserProvider } from './UserContext';
+import {UserProvider} from './UserContext';
 import './App.css';
 
 function AppWrapper() {
@@ -24,6 +25,7 @@ function AppWrapper() {
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
                       <Route path="/NewConcert" element={<OrganizerRoute><NewConcert /></OrganizerRoute>} />
+                      <Route path="/yourConcerts" element={<OrganizerRoute><YourConcerts /></OrganizerRoute>} />
                   </Routes>
               </main>
               <Footer />

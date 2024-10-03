@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 
 function Header() {
     const { user, handleLogout } = useUser(); // Access user info and handleLogout from UserContext
-    console.log("user data:" + user);
     return (
         <header className="d-flex flex-wrap justify-content-between align-items-center py-3 px-4 mb-4 border-bottom">
             <div className="d-flex align-items-center">
@@ -34,7 +33,7 @@ function Header() {
                             {/* Show these options only if the user is an organizer */}
                             {user && user.organizer && (
                                 <>
-                                    <li><Link className="dropdown-item" to="#">Your Concerts</Link></li>
+                                    <li><Link className="dropdown-item" to="/YourConcerts">Your Concerts</Link></li>
                                     <li><Link className="dropdown-item" to="/NewConcert">Plan a New Concert</Link></li>
                                 </>
                             )}

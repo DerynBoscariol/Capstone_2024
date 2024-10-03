@@ -14,24 +14,33 @@ export default function Login() {
         e.preventDefault();
         setLoading(true);
         setError(null);
-    
+        
         try {
             const response = await fetch('http://localhost:3000/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
-    
+        
             const data = await response.json(); 
             console.log('Login response:', data); 
-    
+        
             if (!response.ok) {
                 throw new Error(data.message || 'Invalid email or password');
             }
-    
-            localStorage.setItem('token', data.token); // Save token to local storage
-            localStorage.setItem('user', JSON.stringify({ username: data.username, organizer: data.organizer })); // Save user info correctly
-            setUser({ username: data.username, organizer: data.organizer }); // Set user in context
+        
+            // Optionally include id if needed
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify({ 
+                id: data.id, 
+                username: data.username, 
+                organizer: data.organizer 
+            })); 
+            setUser({ 
+                id: data.id, 
+                username: data.username, 
+                organizer: data.organizer 
+            }); 
             navigate('/'); 
         } catch (error) {
             setError(error.message);
@@ -39,6 +48,7 @@ export default function Login() {
             setLoading(false);
         }
     };
+    
     
     
     return (
