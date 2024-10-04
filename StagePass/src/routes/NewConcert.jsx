@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../UserContext'; // Import the useUser hook to get the current user
 
 const NewConcert = () => {
     const [artist, setArtist] = useState('');
     const [venue, setVenue] = useState('');
+    const [venues, setVenues] = useState([]); // State for existing venues
+    const [showModal, setShowModal] = useState(false); // State for modal visibility
+    const [newVenue, setNewVenue] = useState(''); // State for the new venue input
+    const [newAddress, setNewAddress] = useState(''); // State for the new venue address
     const [tour, setTour] = useState('');
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
     const [description, setDescription] = useState('');
     const [genre, setGenre] = useState('');
-    const [address, setAddress] = useState('');
     const [rules, setRules] = useState('');
     const [ticketType, setTicketType] = useState('');
     const [ticketPrice, setTicketPrice] = useState('');
@@ -19,6 +22,22 @@ const NewConcert = () => {
 
     const { user } = useUser(); // Access the user from UserContext
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchVenues = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/Venues');
+                if (!response.ok) throw new Error('Failed to fetch venues');
+                const data = await response.json();
+                setVenues(data); // Set existing venues
+            } catch (error) {
+                console.error('Error fetching venues:', error);
+                setError('Failed to load venues');
+            }
+        };
+
+        fetchVenues();
+    }, []);
 
     const handleCreateConcert = async (e) => {
         e.preventDefault();
@@ -30,12 +49,11 @@ const NewConcert = () => {
         }
         
         // Simple form validation
-        if (!artist || !venue || !tour || !date || !time || !description || !genre || !address || !rules || !ticketType || !ticketPrice || !numAvail) {
+        if (!artist || !venue || !tour || !date || !time || !description || !genre || !rules || !ticketType || !ticketPrice || !numAvail) {
             setError('Please fill out all fields');
             return;
         }
 
-        // Retrieve the token from localStorage
         const token = localStorage.getItem('token');
         if (!token) {
             setError('No token found. Please log in.');
@@ -47,7 +65,7 @@ const NewConcert = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     artist,
@@ -57,14 +75,14 @@ const NewConcert = () => {
                     time,
                     description,
                     genre,
-                    address,
+                    address: newAddress, // Include the new address here
                     rules,
                     organizer: user.username, // Use the logged-in user's username as the organizer
                     tickets: {
                         type: ticketType,
                         price: parseFloat(ticketPrice),
                         numAvail: parseInt(numAvail),
-                    }
+                    },
                 }),
             });
 
@@ -78,6 +96,52 @@ const NewConcert = () => {
             }
         } catch (err) {
             console.error('Error creating concert:', err);
+            setError('Something went wrong. Please try again.');
+        }
+    };
+
+    const handleAddVenue = async () => {
+        console.log('New Venue:', newVenue);
+        console.log('Venue Address:', newAddress);
+
+        // Check if the new venue name is not empty
+        if (!newVenue || !newAddress) {
+            setError('Please provide a venue name and address.');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError('No token found. Please log in.');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3000/api/AddVenue', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    name: newVenue,
+                    address: newAddress,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response text:', errorText);
+                throw new Error('Failed to add venue');
+            }
+
+            const data = await response.json();
+            setShowModal(false); // Close modal if successful
+            setVenues((prevVenues) => [...prevVenues, data.newVenue]); // Update venues list
+            setNewVenue(''); // Reset the new venue state
+            setNewAddress(''); // Reset the new address state
+        } catch (err) {
+            console.error('Error adding venue:', err);
             setError('Something went wrong. Please try again.');
         }
     };
@@ -102,17 +166,61 @@ const NewConcert = () => {
                     </div>
                     <div className="col-md-6">
                         <label htmlFor="venue" className="form-label">Venue</label>
-                        <input
-                            type="text"
+                        <select
                             id="venue"
-                            className="form-control"
-                            placeholder="Venue"
+                            className="form-select"
                             value={venue}
                             onChange={(e) => setVenue(e.target.value)}
                             required
-                        />
+                        >
+                            <option value="">Select Venue</option>
+                            {venues.map((v) => (
+                                <option key={v._id} value={v.name}>
+                                    {v.name}
+                                </option>
+                            ))}
+                        </select>
+                        <button type="button" className="btn btn-link" onClick={() => setShowModal(true)}>
+                            + Add New Venue
+                        </button>
                     </div>
                 </div>
+
+                {/* Modal for adding new venue */}
+                {showModal && (
+                    <div className="modal show" style={{ display: 'block' }}>
+                        <div className="modal-dialog">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Add New Venue</h5>
+                                    <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                                </div>
+                                <div className="modal-body">
+                                    <input
+                                        type="text"
+                                        className="form-control mb-2"
+                                        placeholder="New Venue Name"
+                                        value={newVenue}
+                                        onChange={(e) => setNewVenue(e.target.value)} 
+                                        required
+                                    />
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="New Venue Address"
+                                        value={newAddress}
+                                        onChange={(e) => setNewAddress(e.target.value)} 
+                                        required
+                                    />
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Close</button>
+                                    <button type="button" className="btn btn-primary" onClick={handleAddVenue}>Add Venue</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="row mb-3">
                     <div className="col-md-6">
@@ -139,59 +247,48 @@ const NewConcert = () => {
                             required
                         />
                     </div>
-                    <div className="row mb-3"></div>
-                        <div className="col-md-3">
-                            <label htmlFor="date" className="form-label">Date</label>
-                            <input
-                                type="date"
-                                id="date"
-                                className="form-control"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className="col-md-3">
-                            <label htmlFor="time" className="form-label">Time</label>
-                            <input
-                                type="time"
-                                id="time"
-                                className="form-control"
-                                value={time}
-                                onChange={(e) => setTime(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
-
-                <div className="mb-3">
-                    <label htmlFor="description" className="form-label">Description</label>
-                    <textarea
-                        id="description"
-                        className="form-control"
-                        placeholder="Description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        required
-                    />
                 </div>
-
+                
                 <div className="row mb-3">
-                    <div className="col-md-6">
-                        <label htmlFor="address" className="form-label">Address</label>
+                    <div className="col-md-3">
+                        <label htmlFor="date" className="form-label">Date</label>
                         <input
-                            type="text"
-                            id="address"
+                            type="date"
+                            id="date"
                             className="form-control"
-                            placeholder="Address"
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="col-md-3">
+                        <label htmlFor="time" className="form-label">Time</label>
+                        <input
+                            type="time"
+                            id="time"
+                            className="form-control"
+                            value={time}
+                            onChange={(e) => setTime(e.target.value)}
                             required
                         />
                     </div>
                     <div className="col-md-6">
-                        <label htmlFor="rules" className="form-label">Rules</label>
+                        <label htmlFor="description" className="form-label">Description</label>
                         <textarea
+                            id="description"
+                            className="form-control"
+                            placeholder="Description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            required
+                        />
+                    </div>
+                </div>
+
+                <div className="row mb-3">
+                    <div className="col-md-6">
+                        <label htmlFor="rules" className="form-label">Rules</label>
+                        <input
                             type="text"
                             id="rules"
                             className="form-control"
@@ -201,9 +298,7 @@ const NewConcert = () => {
                             required
                         />
                     </div>
-                </div>
-
-                <div className="row mb-3">
+                    <div className="row mb-3">
                     <div className="col-md-4">
                         <label htmlFor="ticketType" className="form-label">Ticket Type</label>
                         <select
@@ -244,8 +339,8 @@ const NewConcert = () => {
                             required
                         />
                     </div>
-                </div>
-
+                    </div>
+                    </div>
                 <button type="submit" className="btn btn-primary">Create Concert</button>
             </form>
         </main>
@@ -253,4 +348,3 @@ const NewConcert = () => {
 };
 
 export default NewConcert;
-

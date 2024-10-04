@@ -42,7 +42,7 @@ app.use(cors({ origin: "*", credentials: true })); // Enable credentials for COR
 const authenticateToken = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1]; // Ensure this is correct
 
-    console.log('Received token:', token);  // Log the received token
+    //console.log('Received token:', token);  // Log the received token
 
     if (!token) {
         console.log('No token provided');
@@ -124,7 +124,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Returns all concerts
-app.get("/api/AllConcerts", async (req, res) => {
+app.get('/api/AllConcerts', async (req, res) => {
     try {
         const concerts = await db.collection("concerts").find({}).toArray();
         res.json(concerts);
@@ -133,6 +133,54 @@ app.get("/api/AllConcerts", async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch concerts' });
     }
 });
+
+// Returns all venues
+app.get('/api/Venues', async (req, res) => {
+    try {
+        const venues = await db.collection('venues').find({}).toArray();
+        res.json(venues); // Send venues as JSON response
+    } catch (error) {
+        console.error('Error fetching venues:', error.message);
+        res.status(500).json({ message: 'Failed to fetch venues' });
+    }
+});
+
+app.post('/api/AddVenue', authenticateToken, async (req, res) => {
+    const { name, address } = req.body;
+
+    if (!name || !address) {
+        return res.status(400).json({ message: 'Venue name and address are required.' });
+    }
+
+    try {
+        const newVenue = { name, address };
+        // Insert the new venue into your database
+        await db.collection('venues').insertOne(newVenue);
+        return res.status(201).json({ message: 'Venue added successfully', newVenue });
+    } catch (error) {
+        console.error('Error adding venue:', error.message);
+        return res.status(500).json({ message: 'Failed to add venue.' });
+    }
+});
+
+
+
+// Returns concerts for a venue
+app.get('/api/concertsByVenue/:venue', async (req, res) => {
+    try {
+        const venueName = req.params.venue;
+        const concerts = await db.collection("concerts").find({ venue: venueName }).toArray();
+        // Check if concerts were found
+        if (concerts.length === 0) {
+            return res.status(404).json({ message: 'No concerts found for this venue' });
+        }
+        res.json(concerts);
+    } catch (error) {
+        console.error('Error fetching concerts:', error.message);
+        res.status(500).json({ message: 'Failed to fetch concerts' });
+    }
+});
+
 
 // Route to find a concert by ID
 app.get('/api/ConcertDetails/:id', async (req, res) => {
@@ -157,20 +205,33 @@ app.post('/api/NewConcert', authenticateToken, async (req, res) => {
     const { artist, venue, tour, date, time, description, genre, address, rules, tickets } = req.body;
     const organizerUsername = req.user.username;
 
-    if (!artist || !venue || !tour || !date || !time || !description || !genre || !address || !tickets || !tickets.type || !tickets.price || !tickets.numAvail) {
+    if (!artist || (!venue && !address) || !tour || !date || !time || !description || !genre || !tickets || !tickets.type || !tickets.price || !tickets.numAvail) {
         return res.status(400).json({ message: 'Please provide all required fields.' });
     }
 
     try {
+        // Check if the venue exists in the database
+        let existingVenue = await db.collection('venues').findOne({ name: venue });
+
+        // If the venue does not exist, create a new venue
+        if (!existingVenue) {
+            const newVenue = {
+                name: venue,
+                address: address // Assume you're sending the address in the request
+            };
+            await db.collection('venues').insertOne(newVenue);
+            existingVenue = newVenue; // Assign the newly created venue
+        }
+
+        // Create the concert object
         const concert = {
             artist,
-            venue,
+            venue: existingVenue.name, // Store the venue name or use existingVenue._id if you store IDs
             tour,
             date,
             time,
             description,
             genre,
-            address,
             rules,
             organizer: organizerUsername,
             tickets: {
@@ -180,6 +241,7 @@ app.post('/api/NewConcert', authenticateToken, async (req, res) => {
             }
         };
 
+        // Insert the concert into the database
         await db.collection('concerts').insertOne(concert);
         return res.status(201).json({ message: 'Concert created successfully!', concert });
     } catch (error) {
@@ -187,6 +249,7 @@ app.post('/api/NewConcert', authenticateToken, async (req, res) => {
         return res.status(500).json({ message: 'Failed to create concert.' });
     }
 });
+
 
 // Your Concerts endpoint - ORGANIZER
 app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
@@ -261,11 +324,6 @@ app.put('/api/ConcertDetails/:id', authenticateToken, async (req, res) => {
         console.error('Error updating concert:', error.message);
         res.status(500).json({ message: 'Failed to update concert.' });
     }
-});
-
-// Example of a protected route
-app.get('/api/protected', authenticateToken, (req, res) => {
-    res.json({ message: 'This is a protected route!', user: req.user });
 });
 
 // Set up server listening

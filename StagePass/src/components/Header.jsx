@@ -13,14 +13,14 @@ function Header() {
             </div>
             <h3 id="tag-line" className="ms-3">Think of a tagline</h3>
             <div className="d-flex align-items-center ms-auto">
-                <form className="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
+                {/*<form className="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
                     <input
                         type="search"
                         className="form-control"
                         placeholder="Search..."
                         aria-label="Search"
                     />
-                </form>
+                </form>*/}
                 {/* Conditionally render Login/Register buttons or Dropdown */}
                 {user ? (
                     <div className="dropdown">

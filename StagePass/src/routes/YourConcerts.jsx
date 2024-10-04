@@ -78,12 +78,14 @@ const YourConcerts = () => {
                                         <p><strong>Date:</strong> {formatDate(concert.date)}</p>
                                         <p><strong>Time:</strong> {formatTime(concert.time)}</p>
                                     </div>
-                                    <Link to={`/ConcertDetails/${concert._id}`} className="btn btn-primary">
-                                        View Details
-                                    </Link>
-                                    <Link to={`/EditConcert/${concert._id}`} className="btn btn-primary">
-                                        Edit Concert
-                                    </Link>
+                                    <div className="d-flex justify-content-around">
+                                        <Link to={`/ConcertDetails/${concert._id}`} className="btn btn-primary">
+                                            View Details
+                                        </Link>
+                                        <Link to={`/EditConcert/${concert._id}`} className="btn btn-primary">
+                                            Edit Concert
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>

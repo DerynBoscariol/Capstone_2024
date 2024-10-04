@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './routes/Home';
+import ConcertsByVenue from './routes/ConcertsByVenue';
 import Login from './routes/Login';
 import Register from './routes/Register';
 import NewConcert from './routes/NewConcert';
@@ -22,6 +23,7 @@ function AppWrapper() {
               <main className="flex-grow-1">
                   <Routes>
                       <Route path="/" element={<Home />} />
+                      <Route path="/ConcertsByVenue/:venue" element={<ConcertsByVenue/>} />
                       <Route path="/ConcertDetails/:id" element={<ConcertDetails />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />

@@ -1,44 +1,82 @@
-import  {useState, useEffect} from "react";
-import {Link} from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { formatDate, formatTime } from '../utils';
 
 export default function Home() {
     const [concerts, setAllConcerts] = useState([]);
     const [loading, setLoading] = useState(true); // Loading state
     const [error, setError] = useState(null); // Error state
+    const [venues, setVenues] = useState([]); // State for venues
+    const [selectedVenue, setSelectedVenue] = useState(''); // State for selected venue
 
     useEffect(() => {
         const getAllConcerts = async () => {
-          try {
-            let response = await fetch("http://localhost:3000/api/AllConcerts");
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
+            try {
+                let response = await fetch("http://localhost:3000/api/AllConcerts");
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                let data = await response.json();
+                setAllConcerts(data);
+            } catch (error) {
+                setError(error.message); // Set error message
+            } finally {
+                setLoading(false); // Set loading to false
             }
-            let data = await response.json();
-            setAllConcerts(data);
-          } catch (error) {
-            setError(error.message); // Set error message
-          } finally {
-            setLoading(false); // Set loading to false
-          }
         };
+
+        const getVenues = async () => {
+            try {
+                let response = await fetch("http://localhost:3000/api/Venues");
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                let data = await response.json();
+                setVenues(data);
+            } catch (error) {
+                setError(error.message); // Set error message
+            }
+        };
+
         getAllConcerts();
-      }, []);
+        getVenues();
+    }, []);
 
-      if (loading) {
+    if (loading) {
         return <p>Loading concerts...</p>; // Loading message
-      }
-    
-      if (error) {
-        return <p>Error: {error}</p>; // Error message
-      }
+    }
 
-      return (
+    if (error) {
+        return <p>Error: {error}</p>; // Error message
+    }
+
+    // Filter concerts based on selected venue
+    const filteredConcerts = selectedVenue
+        ? concerts.filter(concert => concert.venue === selectedVenue)
+        : concerts;
+
+    return (
         <main id="main" className="container mt-5">
             <h1 className="text-center mb-4">Explore Concerts Near You</h1>
             <h3 className="mb-3">All Concerts</h3>
+
+            <div className="mb-3">
+                <label htmlFor="venueSelect" className="form-label">Filter by Venue</label>
+                <select
+                    id="venueSelect"
+                    className="form-select"
+                    value={selectedVenue}
+                    onChange={(e) => setSelectedVenue(e.target.value)}
+                >
+                    <option value="">All Venues</option>
+                    {venues.map(venue => (
+                        <option key={venue._id} value={venue.name}>{venue.name}</option>
+                    ))}
+                </select>
+            </div>
+
             <div className="row">
-                {concerts.map((concert) => (
+                {filteredConcerts.map((concert) => (
                     <div key={concert._id} className="col-md-4">
                         <div className="card mb-4 shadow-sm">
                             <img
@@ -67,7 +105,5 @@ export default function Home() {
                 ))}
             </div>
         </main>
-
     );
-    
-    }
+}
