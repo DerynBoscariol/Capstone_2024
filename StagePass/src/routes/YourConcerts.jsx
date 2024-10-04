@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'; 
 import { useEffect, useState, useCallback } from 'react';
+import { formatDate, formatTime } from '../utils';
 
 const YourConcerts = () => {
     const [concerts, setConcerts] = useState([]);
@@ -37,7 +38,7 @@ const YourConcerts = () => {
             }
 
             const concertsData = await response.json();
-            console.log('Fetched concerts:', concertsData); // Log the fetched concerts
+            //console.log('Fetched concerts:', concertsData);
             setConcerts(concertsData); // Set concerts in state
         } catch (error) {
             console.error('Error fetching concerts:', error.message); // Log the error message
@@ -72,14 +73,16 @@ const YourConcerts = () => {
                             <div className="card">
                                 <div className="card-body">
                                     <h5 className="card-title">{concert.artist}</h5>
-                                    <p className="card-text">
-                                        <strong>Venue:</strong> {concert.venue}<br />
-                                        <strong>Date:</strong> {new Date(concert.date).toLocaleDateString()}<br />
-                                        <strong>Time:</strong> {concert.time}<br />
-                                        <strong>Description:</strong> {concert.description}
-                                    </p>
+                                    <div className="card-text">
+                                        <p><strong>Venue:</strong> {concert.venue}</p>
+                                        <p><strong>Date:</strong> {formatDate(concert.date)}</p>
+                                        <p><strong>Time:</strong> {formatTime(concert.time)}</p>
+                                    </div>
                                     <Link to={`/ConcertDetails/${concert._id}`} className="btn btn-primary">
                                         View Details
+                                    </Link>
+                                    <Link to={`/EditConcert/${concert._id}`} className="btn btn-primary">
+                                        Edit Concert
                                     </Link>
                                 </div>
                             </div>
@@ -98,12 +101,11 @@ const YourConcerts = () => {
                             <div className="card">
                                 <div className="card-body">
                                     <h5 className="card-title">{concert.artist}</h5>
-                                    <p className="card-text">
-                                        <strong>Venue:</strong> {concert.venue}<br />
-                                        <strong>Date:</strong> {new Date(concert.date).toLocaleDateString()}<br />
-                                        <strong>Time:</strong> {concert.time}<br />
-                                        <strong>Description:</strong> {concert.description}
-                                    </p>
+                                    <div className="card-text">
+                                        <p><strong>Venue:</strong> {concert.venue}</p>
+                                        <p><strong>Date:</strong> {formatDate(concert.date)}</p>
+                                        <p><strong>Time:</strong> {formatTime(concert.time)}</p>
+                                    </div>
                                     <Link to={`/concertDetails/${concert._id}`} className="btn btn-primary">
                                         View Details
                                     </Link>

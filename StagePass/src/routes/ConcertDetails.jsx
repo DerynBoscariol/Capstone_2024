@@ -56,6 +56,7 @@ export default function ConcertDetails() {
                 <div className="card-body">
                     <h5 className="card-title">Concert Details</h5>
                     <p className="card-text"><strong>Tour:</strong> {concert.tour}</p>
+                    <p className="card-text"><strong>Genre:</strong> {concert.genre}</p>
                     <p className="card-text"><strong>Date:</strong> {formatDate(concert.date)}</p>
                     <p className="card-text"><strong>Time:</strong> {formatTime(concert.time)}</p>
                     <p className="card-text"><strong>Description:</strong> {concert.description}</p>

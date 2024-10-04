@@ -6,6 +6,7 @@ import Login from './routes/Login';
 import Register from './routes/Register';
 import NewConcert from './routes/NewConcert';
 import YourConcerts from './routes/YourConcerts';
+import EditConcert from './routes/EditConcert';
 import OrganizerRoute from './components/OrganizerRoute';
 import ConcertDetails from './routes/ConcertDetails';
 import {UserProvider} from './UserContext';
@@ -26,6 +27,7 @@ function AppWrapper() {
                       <Route path="/register" element={<Register />} />
                       <Route path="/NewConcert" element={<OrganizerRoute><NewConcert /></OrganizerRoute>} />
                       <Route path="/yourConcerts" element={<OrganizerRoute><YourConcerts /></OrganizerRoute>} />
+                      <Route path="/EditConcert/:id" element={<OrganizerRoute><EditConcert/></OrganizerRoute>} />
                   </Routes>
               </main>
               <Footer />

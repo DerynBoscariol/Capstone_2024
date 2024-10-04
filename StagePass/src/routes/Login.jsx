@@ -29,28 +29,24 @@ export default function Login() {
                 throw new Error(data.message || 'Invalid email or password');
             }
         
-            // Optionally include id if needed
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify({ 
+            // Set the user state with token included
+            const userData = { 
                 id: data.id, 
                 username: data.username, 
-                organizer: data.organizer 
-            })); 
-            setUser({ 
-                id: data.id, 
-                username: data.username, 
-                organizer: data.organizer 
-            }); 
-            navigate('/'); 
+                organizer: data.organizer, 
+                token: data.token // Include the token here
+            };
+            localStorage.setItem('token', data.token); // Save token to localStorage
+            localStorage.setItem('user', JSON.stringify(userData)); // Save user info to localStorage
+            setUser(userData); // Update the user state with token
+            navigate('/'); // Redirect after successful login
         } catch (error) {
             setError(error.message);
         } finally {
             setLoading(false);
         }
     };
-    
-    
-    
+
     return (
         <div>
             <h1>Login</h1>

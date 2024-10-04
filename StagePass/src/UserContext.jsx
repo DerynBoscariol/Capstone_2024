@@ -45,9 +45,6 @@ UserProvider.propTypes = {
 };
 
 // Custom hook to use the UserContext
-// eslint-disable-next-line react-refresh/only-export-components
 export const useUser = () => {
     return useContext(UserContext);
 };
-
-

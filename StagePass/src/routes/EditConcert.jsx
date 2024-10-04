@@ -1,8 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useUser } from '../UserContext'; // Import the useUser hook to get the current user
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useUser } from '../UserContext';
 
-const NewConcert = () => {
+const EditConcert = () => {
+    const { id } = useParams(); // Get the concert ID from the URL
+    //const [setConcert] = useState(null); // Store concert data
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const { user } = useUser();
+    const navigate = useNavigate();
+
     const [artist, setArtist] = useState('');
     const [venue, setVenue] = useState('');
     const [tour, setTour] = useState('');
@@ -15,39 +22,72 @@ const NewConcert = () => {
     const [ticketType, setTicketType] = useState('');
     const [ticketPrice, setTicketPrice] = useState('');
     const [numAvail, setNumAvail] = useState('');
-    const [error, setError] = useState('');
 
-    const { user } = useUser(); // Access the user from UserContext
-    const navigate = useNavigate();
+    // Fetch the concert details
+    useEffect(() => {
+        const fetchConcert = async () => {
+            if (!user?.token) {
+                // If user token is not available, return early
+                setError('You must be logged in to fetch concert details');
+                return;
+            }
+    
+            try {
+                const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+    
+                if (!response.ok) {
+                    throw new Error('Failed to fetch concert details.');
+                }
+    
+                const concertData = await response.json();
+                // Directly set the state for individual fields
+                setArtist(concertData.artist);
+                setVenue(concertData.venue);
+                setTour(concertData.tour);
+                setDate(concertData.date);
+                setTime(concertData.time);
+                setDescription(concertData.description);
+                setGenre(concertData.genre);
+                setAddress(concertData.address);
+                setRules(concertData.rules);
+                setTicketType(concertData.tickets.type);
+                setTicketPrice(concertData.tickets.price);
+                setNumAvail(concertData.tickets.numAvail);
+            } catch (err) {
+                console.error(err);
+                setError('Failed to load concert details.');
+            } finally {
+                setLoading(false);
+            }
+        };
+    
+        fetchConcert();
+    }, [id, user]); 
+    
 
-    const handleCreateConcert = async (e) => {
+    // Handle form submission
+    const handleUpdateConcert = async (e) => {
         e.preventDefault();
-
-        // Ensure the user is logged in before submitting
-        if (!user) {
-            setError('You must be logged in to create a concert');
+    
+        if (!user || !user.token) { // Ensure user and token exist
+            setError('You must be logged in to edit this concert');
             return;
         }
-        
-        // Simple form validation
-        if (!artist || !venue || !tour || !date || !time || !description || !genre || !address || !rules || !ticketType || !ticketPrice || !numAvail) {
-            setError('Please fill out all fields');
-            return;
-        }
-
-        // Retrieve the token from localStorage
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setError('No token found. Please log in.');
-            return;
-        }
-
+    
+        console.log('Updating concert with token:', user.token); // Debug log
+    
         try {
-            const response = await fetch('http://localhost:3000/api/NewConcert', {
-                method: 'POST',
+            const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`, {
+                method: 'PUT',
                 headers: {
+                    'Authorization': `Bearer ${user.token}`,
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
                 },
                 body: JSON.stringify({
                     artist,
@@ -59,7 +99,6 @@ const NewConcert = () => {
                     genre,
                     address,
                     rules,
-                    organizer: user.username, // Use the logged-in user's username as the organizer
                     tickets: {
                         type: ticketType,
                         price: parseFloat(ticketPrice),
@@ -67,26 +106,29 @@ const NewConcert = () => {
                     }
                 }),
             });
-
+    
             const data = await response.json();
-
+    
             if (response.ok) {
-                console.log('Concert created:', data);
-                navigate('/'); // Redirect to the homepage or a different page
+                navigate('/YourConcerts'); // Redirect after successful update
             } else {
-                setError(data.message || 'Failed to create concert');
+                setError(data.message || 'Failed to update concert');
             }
         } catch (err) {
-            console.error('Error creating concert:', err);
+            console.error('Error updating concert:', err);
             setError('Something went wrong. Please try again.');
         }
     };
 
+    if (loading) return <p>Loading concert details...</p>;
+    if (error) return <p>{error}</p>;
+
     return (
         <main className="mx-4">
-            <h1 className="text-center">Plan a New Concert</h1>
+            <h1 className="text-center">Edit Concert</h1>
             {error && <p style={{ color: 'red' }}>{error}</p>}
-            <form onSubmit={handleCreateConcert} className="container">
+            <form onSubmit={handleUpdateConcert} className="container">
+                {/* Form fields for artist, venue, etc. */}
                 <div className="row mb-3">
                     <div className="col-md-6">
                         <label htmlFor="artist" className="form-label">Artist</label>
@@ -94,7 +136,6 @@ const NewConcert = () => {
                             type="text"
                             id="artist"
                             className="form-control"
-                            placeholder="Artist"
                             value={artist}
                             onChange={(e) => setArtist(e.target.value)}
                             required
@@ -106,14 +147,12 @@ const NewConcert = () => {
                             type="text"
                             id="venue"
                             className="form-control"
-                            placeholder="Venue"
                             value={venue}
                             onChange={(e) => setVenue(e.target.value)}
                             required
                         />
                     </div>
                 </div>
-
                 <div className="row mb-3">
                     <div className="col-md-6">
                         <label htmlFor="tour" className="form-label">Tour</label>
@@ -121,7 +160,6 @@ const NewConcert = () => {
                             type="text"
                             id="tour"
                             className="form-control"
-                            placeholder="Tour"
                             value={tour}
                             onChange={(e) => setTour(e.target.value)}
                             required
@@ -133,7 +171,6 @@ const NewConcert = () => {
                             type="text"
                             id="genre"
                             className="form-control"
-                            placeholder="Genre"
                             value={genre}
                             onChange={(e) => setGenre(e.target.value)}
                             required
@@ -169,7 +206,6 @@ const NewConcert = () => {
                     <textarea
                         id="description"
                         className="form-control"
-                        placeholder="Description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         required
@@ -183,7 +219,6 @@ const NewConcert = () => {
                             type="text"
                             id="address"
                             className="form-control"
-                            placeholder="Address"
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
                             required
@@ -195,7 +230,6 @@ const NewConcert = () => {
                             type="text"
                             id="rules"
                             className="form-control"
-                            placeholder="Rules"
                             value={rules}
                             onChange={(e) => setRules(e.target.value)}
                             required
@@ -226,7 +260,6 @@ const NewConcert = () => {
                             type="number"
                             id="ticketPrice"
                             className="form-control"
-                            placeholder="Ticket Price"
                             value={ticketPrice}
                             onChange={(e) => setTicketPrice(e.target.value)}
                             required
@@ -238,7 +271,6 @@ const NewConcert = () => {
                             type="number"
                             id="numAvail"
                             className="form-control"
-                            placeholder="Number of Tickets Available"
                             value={numAvail}
                             onChange={(e) => setNumAvail(e.target.value)}
                             required
@@ -246,11 +278,10 @@ const NewConcert = () => {
                     </div>
                 </div>
 
-                <button type="submit" className="btn btn-primary">Create Concert</button>
+                <button type="submit" className="btn btn-primary">Update Concert</button>
             </form>
         </main>
     );
 };
 
-export default NewConcert;
-
+export default EditConcert;
