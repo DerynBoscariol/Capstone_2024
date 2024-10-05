@@ -11,7 +11,7 @@ function Header() {
                     <SiteName />
                 </div>
             </div>
-            <h3 id="tag-line" className="ms-3">Think of a tagline</h3>
+            <h3 id="tag-line" className="ms-3">Your Gateway to Intimate Music Memories</h3>
             <div className="d-flex align-items-center ms-auto">
                 {/*<form className="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
                     <input
@@ -28,7 +28,7 @@ function Header() {
                             {user.username}
                         </button>
                         <ul className="dropdown-menu">
-                            <li><Link className="dropdown-item" to="#">Your Tickets</Link></li>
+                            <li><Link className="dropdown-item" to="/YourTickets">Your Tickets</Link></li>
 
                             {/* Show these options only if the user is an organizer */}
                             {user && user.organizer && (
@@ -37,7 +37,7 @@ function Header() {
                                     <li><Link className="dropdown-item" to="/NewConcert">Plan a New Concert</Link></li>
                                 </>
                             )}
-                            <li><Link className="dropdown-item" to="#">Settings</Link></li>
+                            <li><Link className="dropdown-item" to="/Settings">Settings</Link></li>
                             <li><a className="dropdown-item" href="#" onClick={handleLogout}>Logout</a></li>
                         </ul>
                     </div>

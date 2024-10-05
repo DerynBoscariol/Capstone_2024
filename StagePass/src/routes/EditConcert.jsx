@@ -45,56 +45,67 @@ const EditConcert = () => {
 
     const handleEditConcert = async (e) => {
         e.preventDefault();
-
-        // Ensure the user is logged in before submitting
+    
         if (!user) {
             setError('You must be logged in to edit a concert');
             return;
         }
-
-        // Simple form validation
-        const { artist, venue, tour, date, time, description, genre, rules, ticketType, ticketPrice, numAvail } = concertDetails;
-        if (!artist || !venue || !tour || !date || !time || !description || !genre || !rules || !ticketType || !ticketPrice || !numAvail) {
+    
+        // Log current concert details for debugging
+        console.log('Current concertDetails:', concertDetails);
+    
+        const { artist, venue, tour, date, time, description, genre, rules, tickets } = concertDetails;
+        
+        // Check that all required fields are filled
+        if (!artist || !venue || !tour || !date || !time || !description || !genre || !rules || !tickets.type || !tickets.price || !tickets.numAvail) {
             setError('Please fill out all fields');
             return;
         }
-
+    
+        const ticketPrice = parseFloat(tickets.price);
+        const numAvail = parseInt(tickets.numAvail);
+    
+        if (isNaN(ticketPrice) || isNaN(numAvail)) {
+            setError('Please provide valid ticket details.');
+            return;
+        }
+    
         const token = localStorage.getItem('token');
         if (!token) {
             setError('No token found. Please log in.');
             return;
         }
-
+    
         try {
-            const response = await fetch(`http://localhost:3000/api/EditConcert/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    artist: concertDetails.artist,
-                    venue: concertDetails.venue,
-                    tour: concertDetails.tour,
-                    date: concertDetails.date,
-                    time: concertDetails.time,
-                    description: concertDetails.description,
-                    genre: concertDetails.genre,
-                    rules: concertDetails.rules,
-                    organizer: user.username, // Use the logged-in user's username as the organizer
+                    artist,
+                    venue,
+                    tour,
+                    date,
+                    time,
+                    description,
+                    genre,
+                    rules,
+                    organizer: user.username,
                     tickets: {
-                        type: concertDetails.ticketType,
-                        price: parseFloat(concertDetails.ticketPrice),
-                        numAvail: parseInt(concertDetails.numAvail),
+                        type: tickets.type,
+                        price: ticketPrice,
+                        numAvail: numAvail,
                     },
                 }),
             });
-
+    
             const data = await response.json();
-
+    
             if (response.ok) {
                 console.log('Concert edited:', data);
-                navigate('/'); // Redirect to the homepage or a different page
+                navigate('/'); // Redirect after successful edit
             } else {
                 setError(data.message || 'Failed to edit concert');
             }
@@ -103,6 +114,7 @@ const EditConcert = () => {
             setError('Something went wrong. Please try again.');
         }
     };
+    
 
     const handleAddVenue = async () => {
         // Check if the new venue name is not empty

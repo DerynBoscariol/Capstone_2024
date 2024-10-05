@@ -134,6 +134,83 @@ app.get('/api/AllConcerts', async (req, res) => {
     }
 });
 
+// Reserve tickets for a concert
+app.post('/api/reserveTickets', authenticateToken, async (req, res) => {
+    const { concertId, numTickets } = req.body;
+    const userId = req.user.id;
+
+    if (!concertId || !numTickets || numTickets <= 0) {
+        return res.status(400).json({ message: 'Concert ID and valid number of tickets are required.' });
+    }
+
+    try {
+        // Find the concert by ID
+        const concert = await db.collection('concerts').findOne({ _id: new ObjectId(concertId) });
+
+        if (!concert) {
+            return res.status(404).json({ message: 'Concert not found.' });
+        }
+
+        // Check if enough tickets are available
+        if (concert.tickets.numAvail < numTickets) {
+            return res.status(400).json({ message: 'Not enough tickets available.' });
+        }
+
+        // Reduce available ticket count
+        await db.collection('concerts').updateOne(
+            { _id: new ObjectId(concertId) },
+            { $inc: { 'tickets.numAvail': -numTickets } }
+        );
+
+        // Create a reservation entry in the database
+        const reservation = {
+            userId,
+            concertId,
+            numTickets,
+            status: 'Reserved', 
+            reservedAt: new Date(),
+        };
+        await db.collection('reservations').insertOne(reservation);
+
+        return res.status(201).json({ message: 'Tickets reserved successfully!', reservation });
+    } catch (error) {
+        console.error('Error reserving tickets:', error.message);
+        return res.status(500).json({ message: 'Failed to reserve tickets.' });
+    }
+});
+
+// Get user's reserved tickets
+app.get('/api/user/tickets', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        // Find reservations made by the user
+        const tickets = await db.collection('reservations').find({ userId }).toArray();
+
+        if (!tickets.length) {
+            return res.status(404).json({ message: 'No tickets found for this user.' });
+        }
+
+        // You may want to populate concert details or format the response as needed
+        const ticketsWithConcertDetails = await Promise.all(tickets.map(async (ticket) => {
+            const concert = await db.collection('concerts').findOne({ _id: new ObjectId(ticket.concertId) });
+            return {
+                reservationNumber: ticket._id, // Use the reservation ID as the reservation number
+                concert,
+                ticketType: concert.tickets.type, // Adjust according to your structure
+                quantity: ticket.numTickets, // Assuming you store this in your reservations
+            };
+        }));
+
+        res.json(ticketsWithConcertDetails);
+    } catch (error) {
+        console.error('Error fetching tickets:', error.message);
+        return res.status(500).json({ message: 'Failed to fetch tickets.' });
+    }
+});
+
+
+
 // Returns all venues
 app.get('/api/Venues', async (req, res) => {
     try {
@@ -163,6 +240,56 @@ app.post('/api/AddVenue', authenticateToken, async (req, res) => {
     }
 });
 
+// Settings endpoint
+app.put('/api/user/Settings', authenticateToken, async (req, res) => {
+    const { username, email, password } = req.body;
+
+    // Validate input
+    if (!username && !email && !password) {
+        return res.status(400).json({ message: 'At least one field (username, email, or password) is required to update.' });
+    }
+
+    try {
+        // Get user ID from the authenticated request
+        const userId = req.user.id; 
+
+        // Create an update object
+        const updateFields = {};
+        if (username) updateFields.username = username;
+        if (email) {
+            // Add basic email validation if needed
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({ message: 'Invalid email format.' });
+            }
+            updateFields.email = email;
+        }
+        if (password) {
+            // Hash password before saving
+            const hashedPassword = await bcrypt.hash(password, 10); // Salt rounds = 10
+            updateFields.password = hashedPassword;
+        }
+
+        // Update the user in the database
+        const result = await db.collection('users').updateOne(
+            { _id: new ObjectId(userId) }, // Filter by user ID
+            { $set: updateFields } // Set the updated fields
+        );
+
+        // Check if the user was found and updated
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Optionally exclude password from response
+        if (updateFields.password) delete updateFields.password;
+
+        res.status(200).json({ message: 'Settings updated successfully', updatedFields: updateFields });
+    } catch (error) {
+        console.error('Error updating settings:', error);
+        res.status(500).json({ message: 'Failed to update settings' });
+    }
+});
 
 
 // Returns concerts for a venue
@@ -269,16 +396,16 @@ app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
     }
 });
 
-// PUT route to edit a concert
+// Update concert endpoint
 app.put('/api/ConcertDetails/:id', authenticateToken, async (req, res) => {
     const concertId = req.params.id;
     const organizerUsername = req.user.username;
 
     // Destructure the request body
-    const { artist, venue, tour, date, time, description, genre, address, rules, tickets } = req.body;
+    const { artist, venue, tour, date, time, description, genre, rules, tickets } = req.body;
 
     // Check for missing required fields
-    if (!artist || !venue || !tour || !date || !time || !description || !genre || !address || !tickets || !tickets.type || !tickets.price || !tickets.numAvail) {
+    if (!artist || !venue || !tour || !date || !time || !description || !genre || !tickets || !tickets.type || !tickets.price || !tickets.numAvail) {
         return res.status(400).json({ message: 'Please provide all required fields.' });
     }
 
@@ -305,24 +432,21 @@ app.put('/api/ConcertDetails/:id', authenticateToken, async (req, res) => {
             time,
             description,
             genre,
-            address,
             rules,
-            tickets: {
-                type: tickets.type,
-                price: tickets.price,
-                numAvail: tickets.numAvail
-            }
+            tickets
         };
+
         // Update the concert in the database
         await db.collection('concerts').updateOne(
             { _id: new ObjectId(concertId) },
             { $set: updatedConcert }
         );
+
         // Respond with a success message and the updated concert data
-        res.json({ message: 'Concert updated successfully!', concert: { ...concert, ...updatedConcert } });
+        res.json({ message: 'Concert updated successfully!', concert: updatedConcert });
     } catch (error) {
         console.error('Error updating concert:', error.message);
-        res.status(500).json({ message: 'Failed to update concert.' });
+        res.status(500).json({ message: 'Failed to update concert.', error: error.message });
     }
 });
 

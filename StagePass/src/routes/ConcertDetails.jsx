@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import PropTypes from 'prop-types'; 
 import { formatDate, formatTime } from '../utils';
 
-export default function ConcertDetails() {
-    const { id } = useParams(); 
+export default function ConcertDetails({ userToken }) {
+    const { id } = useParams();
     const [concert, setConcert] = useState(null);
-    const [loading, setLoading] = useState(true); 
-    const [error, setError] = useState(null); 
-    const [showModal, setShowModal] = useState(false); 
-    const [ticketQuantity, setTicketQuantity] = useState(1); 
-    const [totalPrice, setTotalPrice] = useState(0); 
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [ticketQuantity, setTicketQuantity] = useState(1);
+    const [totalPrice, setTotalPrice] = useState(0);
+    const [reservationMessage, setReservationMessage] = useState('');
 
     useEffect(() => {
         const fetchConcert = async () => {
@@ -19,15 +21,15 @@ export default function ConcertDetails() {
                     throw new Error("Concert not found");
                 }
                 const data = await response.json();
-                setConcert(data); 
+                setConcert(data);
                 setTotalPrice(data.tickets.price); // Set the initial total price based on ticket price
             } catch (error) {
-                setError(error.message); 
+                setError(error.message);
             } finally {
-                setLoading(false); 
+                setLoading(false);
             }
         };
-    
+
         fetchConcert();
     }, [id]);
 
@@ -38,15 +40,50 @@ export default function ConcertDetails() {
         }
     }, [ticketQuantity, concert]);
 
-    if (loading) return <p>Loading concert details...</p>; 
-    if (error) return <p>Error: {error}</p>; 
-    if (!concert) return <p>No concert found.</p>;
+    const reserveTickets = async () => {
+        if (!userToken) {
+            setReservationMessage('You must be logged in to reserve tickets.');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3000/api/reserveTickets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`, // Use the userToken
+                },
+                body: JSON.stringify({
+                    concertId: concert._id,
+                    numTickets: ticketQuantity,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                setReservationMessage(`Successfully reserved ${ticketQuantity} ticket(s)!`);
+            } else {
+                setReservationMessage(result.message || 'Failed to reserve tickets.');
+            }
+        } catch (error) {
+            setReservationMessage('An error occurred while reserving tickets: ' + error.message);
+        }
+        // Don't close the modal immediately to allow user to see the message
+        // setShowModal(false); // Comment this out
+        setTicketQuantity(1); // Reset the ticket quantity after the reservation attempt
+    };
 
     const handleBuyTickets = () => {
-        alert(`Purchased ${ticketQuantity} ticket(s) for ${concert.artist} at ${concert.venue} for a total of $${totalPrice}!`);
-        setShowModal(false); 
-        setTicketQuantity(1); 
+        reserveTickets(); // Call the reserveTickets function to process the reservation
     };
+
+    if (loading) return <p>Loading concert details...</p>;
+
+    // Display the error message if any occurs during the fetch request
+    if (error) return <p>Error: {error}</p>;
+
+    if (!concert) return <p>No concert found.</p>;
 
     return (
         <main id="main" className="container mt-4">
@@ -76,6 +113,12 @@ export default function ConcertDetails() {
                     </div>
                 </div>
             </div>
+
+            {reservationMessage && (
+                <div className="alert alert-info text-center">
+                    {reservationMessage}
+                </div>
+            )}
 
             {/* Purchase Modal */}
             <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ display: showModal ? 'block' : 'none' }} tabIndex="-1" role="dialog" aria-labelledby="ticketModalLabel" aria-hidden={!showModal}>
@@ -108,13 +151,16 @@ export default function ConcertDetails() {
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button type="button" className="btn btn-primary" onClick={handleBuyTickets}>Buy Tickets</button>
+                            <button type="button" className="btn btn-primary" onClick={handleBuyTickets}>Reserve Tickets</button>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
-
     );
 }
 
+// Adding prop types validation for userToken
+ConcertDetails.propTypes = {
+    userToken: PropTypes.string.isRequired,
+};

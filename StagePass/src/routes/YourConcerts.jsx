@@ -13,22 +13,22 @@ const YourConcerts = () => {
 
     const fetchConcerts = useCallback(async () => { // Use useCallback to memoize the function
         setLoading(true);
-        setError(null); // Reset error state
+        setError(null); 
         const token = getToken();
 
         if (!token) {
             setError('No token found. Please log in.');
             setLoading(false);
-            return; // Exit if no token
+            return; 
         }
 
-        console.log('Token:', token); // Log the token for debugging
+        console.log('Token:', token); 
 
         try {
             const response = await fetch('http://localhost:3000/api/YourConcerts', {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`, // Include token in Authorization header
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -41,10 +41,10 @@ const YourConcerts = () => {
             //console.log('Fetched concerts:', concertsData);
             setConcerts(concertsData); // Set concerts in state
         } catch (error) {
-            console.error('Error fetching concerts:', error.message); // Log the error message
-            setError(error.message); // Set error in state
+            console.error('Error fetching concerts:', error.message); 
+            setError(error.message); 
         } finally {
-            setLoading(false); // Stop loading
+            setLoading(false);
         }
     }, []); // Add empty dependency array since getToken is stable
 
