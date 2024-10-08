@@ -134,6 +134,23 @@ app.get('/api/AllConcerts', async (req, res) => {
     }
 });
 
+// Endpoint for upcoming concerts
+app.get('/api/FutureConcerts', async (req, res) => {
+    const currentDate = new Date(); // Get the current date
+    //console.log("Current Date:", currentDate); // Log current date
+    try {
+        const futureConcerts = await db.collection("concerts")
+            .find({ date: { $gte: currentDate } })
+            .sort({ date: 1 })
+            .toArray();
+        //console.log("Future concerts fetched:", futureConcerts); // Log fetched concerts
+        res.json(futureConcerts);
+    } catch (error) {
+        console.error('Error fetching all concerts:', error.message);
+        res.status(500).json({ message: 'Failed to fetch concerts' });
+    }
+});
+
 // Reserve tickets for a concert
 app.post('/api/reserveTickets', authenticateToken, async (req, res) => {
     const { concertId, numTickets } = req.body;
@@ -209,8 +226,6 @@ app.get('/api/user/tickets', authenticateToken, async (req, res) => {
     }
 });
 
-
-
 // Returns all venues
 app.get('/api/Venues', async (req, res) => {
     try {
@@ -222,6 +237,7 @@ app.get('/api/Venues', async (req, res) => {
     }
 });
 
+// Endpoint to add a new venue
 app.post('/api/AddVenue', authenticateToken, async (req, res) => {
     const { name, address } = req.body;
 
@@ -291,7 +307,6 @@ app.put('/api/user/Settings', authenticateToken, async (req, res) => {
     }
 });
 
-
 // Returns concerts for a venue
 app.get('/api/concertsByVenue/:venue', async (req, res) => {
     try {
@@ -307,7 +322,6 @@ app.get('/api/concertsByVenue/:venue', async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch concerts' });
     }
 });
-
 
 // Route to find a concert by ID
 app.get('/api/ConcertDetails/:id', async (req, res) => {
@@ -350,12 +364,15 @@ app.post('/api/NewConcert', authenticateToken, async (req, res) => {
             existingVenue = newVenue; // Assign the newly created venue
         }
 
+        // Convert the date and time to a Date object
+        const concertDate = new Date(`${date}T${time}`); // Ensure it's in ISO format
+
         // Create the concert object
         const concert = {
             artist,
             venue: existingVenue.name, // Store the venue name or use existingVenue._id if you store IDs
             tour,
-            date,
+            date: concertDate,
             time,
             description,
             genre,
@@ -376,7 +393,6 @@ app.post('/api/NewConcert', authenticateToken, async (req, res) => {
         return res.status(500).json({ message: 'Failed to create concert.' });
     }
 });
-
 
 // Your Concerts endpoint - ORGANIZER
 app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
@@ -423,12 +439,15 @@ app.put('/api/ConcertDetails/:id', authenticateToken, async (req, res) => {
             return res.status(403).json({ message: 'You are not authorized to edit this concert.' });
         }
 
+        // Convert the date and time to a Date object
+        const concertDate = new Date(`${date}T${time}`); // Ensure it's in ISO format
+
         // Create the updated concert object
         const updatedConcert = {
             artist,
             venue,
             tour,
-            date,
+            date: concertDate,
             time,
             description,
             genre,
@@ -449,6 +468,26 @@ app.put('/api/ConcertDetails/:id', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Failed to update concert.', error: error.message });
     }
 });
+
+// Delete concert endpoint
+app.delete('/api/concertDetails/:id', async (req, res) => {
+    const concertId = req.params.id; // Get the concert ID from the URL parameters
+
+    try {
+        // Assuming you have a MongoDB connection established, delete the concert
+        const result = await db.collection('concerts').deleteOne({ _id: new ObjectId(concertId) });
+
+        if (result.deletedCount === 1) {
+            res.status(200).json({ message: 'Concert deleted successfully.' });
+        } else {
+            res.status(404).json({ message: 'Concert not found.' });
+        }
+    } catch (error) {
+        console.error('Error deleting concert:', error);
+        res.status(500).json({ message: 'Error deleting concert.' });
+    }
+});
+
 
 // Set up server listening
 app.listen(port, () => {

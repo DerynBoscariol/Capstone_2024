@@ -11,19 +11,17 @@ const YourConcerts = () => {
         return localStorage.getItem('token'); // JWT token in localStorage
     };
 
-    const fetchConcerts = useCallback(async () => { // Use useCallback to memoize the function
+    const fetchConcerts = useCallback(async () => { 
         setLoading(true);
         setError(null); 
         const token = getToken();
-
+    
         if (!token) {
             setError('No token found. Please log in.');
             setLoading(false);
             return; 
         }
-
-        console.log('Token:', token); 
-
+    
         try {
             const response = await fetch('http://localhost:3000/api/YourConcerts', {
                 method: 'GET',
@@ -32,30 +30,55 @@ const YourConcerts = () => {
                     'Content-Type': 'application/json'
                 }
             });
-
+    
             if (!response.ok) {
-                throw new Error('Network response was not ok'); // Handle non-200 responses
+                throw new Error('Network response was not ok'); 
             }
-
+    
             const concertsData = await response.json();
-            //console.log('Fetched concerts:', concertsData);
-            setConcerts(concertsData); // Set concerts in state
+            console.log('Fetched concerts:', concertsData); // Log fetched concerts
+            setConcerts(concertsData); 
         } catch (error) {
             console.error('Error fetching concerts:', error.message); 
             setError(error.message); 
         } finally {
             setLoading(false);
         }
-    }, []); // Add empty dependency array since getToken is stable
+    }, []);
+    
+
+    const handleDeleteConcert = async (id) => {
+        if (window.confirm('Are you sure you want to delete this concert?')) {
+            const token = getToken();
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    // Filter out the deleted concert from the state
+                    setConcerts((prevConcerts) => prevConcerts.filter(concert => concert._id !== id));
+                } else {
+                    const errorData = await response.json();
+                    setError(errorData.message || 'Failed to delete concert.');
+                }
+            } catch (error) {
+                console.error('Error deleting concert:', error);
+                setError('Something went wrong. Please try again.');
+            }
+        }
+    };
 
     useEffect(() => {
         fetchConcerts();
-    }, [fetchConcerts]); // Include fetchConcerts in the dependency array
+    }, [fetchConcerts]);
 
-    // Get today's date
     const today = new Date();
-
-    // Separate concerts into upcoming and past
     const upcomingConcerts = concerts.filter(concert => new Date(concert.date) > today);
     const pastConcerts = concerts.filter(concert => new Date(concert.date) <= today);
 
@@ -78,13 +101,19 @@ const YourConcerts = () => {
                                         <p><strong>Date:</strong> {formatDate(concert.date)}</p>
                                         <p><strong>Time:</strong> {formatTime(concert.time)}</p>
                                     </div>
-                                    <div className="d-flex justify-content-around">
+                                    <div className="d-flex justify-content-around gap-1">
                                         <Link to={`/ConcertDetails/${concert._id}`} className="btn btn-primary">
                                             View Details
                                         </Link>
                                         <Link to={`/EditConcert/${concert._id}`} className="btn btn-primary">
                                             Edit Concert
                                         </Link>
+                                        <button
+                                            className="btn btn-danger"
+                                            onClick={() => handleDeleteConcert(concert._id)}
+                                        >
+                                            Delete Concert
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -108,9 +137,17 @@ const YourConcerts = () => {
                                         <p><strong>Date:</strong> {formatDate(concert.date)}</p>
                                         <p><strong>Time:</strong> {formatTime(concert.time)}</p>
                                     </div>
-                                    <Link to={`/concertDetails/${concert._id}`} className="btn btn-primary">
-                                        View Details
-                                    </Link>
+                                    <div className="d-flex gap-1">
+                                        <Link to={`/concertDetails/${concert._id}`} className="btn btn-primary">
+                                            View Details
+                                        </Link>
+                                        <button
+                                            className="btn btn-danger"
+                                            onClick={() => handleDeleteConcert(concert._id)}
+                                        >
+                                            Delete Concert
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

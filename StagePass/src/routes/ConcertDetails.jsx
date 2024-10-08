@@ -88,7 +88,7 @@ export default function ConcertDetails({ userToken }) {
     return (
         <main id="main" className="container mt-4">
             <h1 className="text-center mb-4">{concert.artist} at {concert.venue}</h1>
-            
+            <image src={concert.imgPath} alt={concert.imgAltText} />
             <div className="card mb-4">
                 <div className="card-body">
                     <h5 className="card-title">Concert Details</h5>

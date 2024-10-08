@@ -12,19 +12,27 @@ export default function Home() {
     useEffect(() => {
         const getAllConcerts = async () => {
             try {
-                let response = await fetch("http://localhost:3000/api/AllConcerts");
+                let response = await fetch("http://localhost:3000/api/FutureConcerts");
                 if (!response.ok) {
                     throw new Error("Network response was not ok");
                 }
                 let data = await response.json();
-                setAllConcerts(data);
+                //console.log("Raw concert data:", data); // Log the raw data
+                
+                // Convert the date strings to Date objects
+                const concertsWithDates = data.map(concert => ({
+                    ...concert,
+                    date: new Date(concert.date)  // Convert date string to Date object
+                }));
+    
+                setAllConcerts(concertsWithDates); // Set concerts with correct date formats
             } catch (error) {
                 setError(error.message); // Set error message
             } finally {
                 setLoading(false); // Set loading to false
             }
         };
-
+    
         const getVenues = async () => {
             try {
                 let response = await fetch("http://localhost:3000/api/Venues");
@@ -37,10 +45,12 @@ export default function Home() {
                 setError(error.message); // Set error message
             }
         };
-
+    
         getAllConcerts();
         getVenues();
     }, []);
+    
+    
 
     if (loading) {
         return <p>Loading concerts...</p>; // Loading message
@@ -58,7 +68,7 @@ export default function Home() {
     return (
         <main id="main" className="container mt-5">
             <h1 className="text-center mb-4">Explore Concerts Near You</h1>
-            <h3 className="mb-3">All Concerts</h3>
+            <h3 className="mb-3">Upcoming Concerts</h3>
 
             <div className="mb-3">
                 <label htmlFor="venueSelect" className="form-label">Filter by Venue</label>
@@ -75,35 +85,39 @@ export default function Home() {
                 </select>
             </div>
 
-            <div className="row">
-                {filteredConcerts.map((concert) => (
-                    <div key={concert._id} className="col-md-4">
-                        <div className="card mb-4 shadow-sm">
-                            <img
-                                className="concert-img card-img-top"
-                                src={`imgs/${concert.image}`}
-                                alt={concert.concertName}
-                            />
-                            <div className="card-body">
-                                <h5 className="card-title">
-                                    {concert.artist} at {concert.venue}
-                                </h5>
-                                <p className="card-text">
-                                    {concert.tour}
-                                </p>
-                                <p className="card-text">
-                                    {formatDate(concert.date)} at {formatTime(concert.time)}
-                                </p>
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <Link to={`/ConcertDetails/${concert._id}`} className="btn btn-primary">
-                                        Tickets and Info
-                                    </Link>
+            {filteredConcerts.length === 0 ? (
+                <p>No concerts available for the selected venue or future dates.</p>
+            ) : (
+                <div className="row">
+                    {filteredConcerts.map((concert) => (
+                        <div key={concert._id} className="col-md-4">
+                            <div className="card mb-4 shadow-sm">
+                                <img
+                                    className="concert-img card-img-top"
+                                    src={`imgs/${concert.image}`}
+                                    alt={concert.concertName}
+                                />
+                                <div className="card-body">
+                                    <h5 className="card-title">
+                                        {concert.artist} at {concert.venue}
+                                    </h5>
+                                    <p className="card-text">
+                                        {concert.tour}
+                                    </p>
+                                    <p className="card-text">
+                                        {formatDate(concert.date)} at {formatTime(concert.time)}
+                                    </p>
+                                    <div className="d-flex justify-content-between align-items-center">
+                                        <Link to={`/ConcertDetails/${concert._id}`} className="btn btn-primary">
+                                            Tickets and Info
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </main>
     );
 }

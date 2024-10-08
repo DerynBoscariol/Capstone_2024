@@ -15,6 +15,7 @@ const NewConcert = () => {
     const [description, setDescription] = useState('');
     const [genre, setGenre] = useState('');
     const [rules, setRules] = useState('');
+    const [image, setImage] = useState('');
     const [ticketType, setTicketType] = useState('');
     const [ticketPrice, setTicketPrice] = useState('');
     const [numAvail, setNumAvail] = useState('');
@@ -77,6 +78,7 @@ const NewConcert = () => {
                     genre,
                     address: newAddress, // Include the new address here
                     rules,
+                    image,
                     organizer: user.username, // Use the logged-in user's username as the organizer
                     tickets: {
                         type: ticketType,
@@ -298,48 +300,61 @@ const NewConcert = () => {
                             required
                         />
                     </div>
+                    <div className="col-md-6">
+                        <label htmlFor="image" className="form-label">Upload a promo image</label>
+                        <input
+                            type="file"
+                            accept='.png, .jpg, .jpeg'
+                            id="image"
+                            className="form-control"
+                            placeholder="accepting files ending with .png, .jpg, or .jpeg"
+                            value={image}
+                            onChange={(e) => setImage(e.target.value)}
+                            required
+                        />
+                        </div>
+                    </div>
                     <div className="row mb-3">
-                    <div className="col-md-4">
-                        <label htmlFor="ticketType" className="form-label">Ticket Type</label>
-                        <select
-                            id="ticketType"
-                            className="form-select"
-                            value={ticketType}
-                            onChange={(e) => setTicketType(e.target.value)}
-                            required
-                        >
-                            <option value="">Select Ticket Type</option> {/* Default option */}
-                            <option value="General Admission (Seated)">General Admission (Seated)</option>
-                            <option value="General Admission (Standing)">General Admission (Standing)</option>
-                            <option value="Reserved Seating">Reserved Seating</option>
-                        </select>
-                    </div>
+                        <div className="col-md-4">
+                            <label htmlFor="ticketType" className="form-label">Ticket Type</label>
+                            <select
+                                id="ticketType"
+                                className="form-select"
+                                value={ticketType}
+                                onChange={(e) => setTicketType(e.target.value)}
+                                required
+                            >
+                                <option value="">Select Ticket Type</option> {/* Default option */}
+                                <option value="General Admission (Seated)">General Admission (Seated)</option>
+                                <option value="General Admission (Standing)">General Admission (Standing)</option>
+                                <option value="Reserved Seating">Reserved Seating</option>
+                            </select>
+                        </div>
 
-                    <div className="col-md-4">
-                        <label htmlFor="ticketPrice" className="form-label">Ticket Price</label>
-                        <input
-                            type="number"
-                            id="ticketPrice"
-                            className="form-control"
-                            placeholder="Ticket Price"
-                            value={ticketPrice}
-                            onChange={(e) => setTicketPrice(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <label htmlFor="numAvail" className="form-label">Number of Tickets Available</label>
-                        <input
-                            type="number"
-                            id="numAvail"
-                            className="form-control"
-                            placeholder="Number of Tickets Available"
-                            value={numAvail}
-                            onChange={(e) => setNumAvail(e.target.value)}
-                            required
-                        />
-                    </div>
-                    </div>
+                        <div className="col-md-4">
+                            <label htmlFor="ticketPrice" className="form-label">Ticket Price</label>
+                            <input
+                                type="number"
+                                id="ticketPrice"
+                                className="form-control"
+                                placeholder="Ticket Price"
+                                value={ticketPrice}
+                                onChange={(e) => setTicketPrice(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <label htmlFor="numAvail" className="form-label">Number of Tickets Available</label>
+                            <input
+                                type="number"
+                                id="numAvail"
+                                className="form-control"
+                                placeholder="Number of Tickets Available"
+                                value={numAvail}
+                                onChange={(e) => setNumAvail(e.target.value)}
+                                required
+                            />
+                        </div>
                     </div>
                 <button type="submit" className="btn btn-primary">Create Concert</button>
             </form>
