@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { formatDate, formatTime } from '../utils';
+import '../../public/css/styles.css';
 
 export default function Home() {
     const [concerts, setAllConcerts] = useState([]);
@@ -93,7 +94,7 @@ export default function Home() {
                         <div key={concert._id} className="col-md-4">
                             <div className="card mb-4 shadow-sm">
                                 <img
-                                    className="concert-img card-img-top"
+                                    className="concert-thumb card-img-top"
                                     src={concert.photoPath}
                                     alt={concert.artist}
                                 />

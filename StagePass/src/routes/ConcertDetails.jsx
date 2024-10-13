@@ -88,25 +88,28 @@ export default function ConcertDetails({ userToken }) {
     return (
         <main id="main" className="container mt-4">
             <h1 className="text-center mb-4">{concert.artist} at {concert.venue}</h1>
+            
+            <div className="d-flex flex-column flex-md-row mb-4 gap-5">
                 <img 
                     src={concert.photoPath.replace(/ /g, '%20')} 
                     alt={`${concert.artist} promo image`} 
-                    className="img-fluid mb-4" 
+                    className="details-img me-md-4 mb-3 mb-md-0"
                 />
-            <div className="card mb-4">
-                <div className="card-body">
-                    <h5 className="card-title">Concert Details</h5>
-                    <p className="card-text"><strong>Tour:</strong> {concert.tour}</p>
-                    <p className="card-text"><strong>Genre:</strong> {concert.genre}</p>
-                    <p className="card-text"><strong>Date:</strong> {formatDate(concert.date)}</p>
-                    <p className="card-text"><strong>Time:</strong> {formatTime(concert.time)}</p>
-                    <p className="card-text"><strong>Description:</strong> {concert.description}</p>
-                    <p className="card-text"><strong>Address:</strong> {concert.address}</p>
-                    <p className="card-text"><strong>Rules:</strong> {concert.rules}</p>
-                    <p className="card-text"><strong>Organizer:</strong> {concert.organizer}</p>
+                <div className="card flex-fill">
+                    <div className="card-body">
+                        <h5 className="card-title">Concert Details</h5>
+                        <p className="card-text"><strong>Tour:</strong> {concert.tour}</p>
+                        <p className="card-text"><strong>Genre:</strong> {concert.genre}</p>
+                        <p className="card-text"><strong>Date:</strong> {formatDate(concert.date)}</p>
+                        <p className="card-text"><strong>Time:</strong> {formatTime(concert.time)}</p>
+                        <p className="card-text"><strong>Description:</strong> {concert.description}</p>
+                        <p className="card-text"><strong>Address:</strong> {concert.address}</p>
+                        <p className="card-text"><strong>Rules:</strong> {concert.rules}</p>
+                        <p className="card-text"><strong>Organizer:</strong> {concert.organizer}</p>
+                    </div>
                 </div>
             </div>
-
+    
             <h3 className="text-center mb-4">Ticket Information</h3>
             <div className="card mb-4">
                 <div className="card-body">
@@ -117,13 +120,13 @@ export default function ConcertDetails({ userToken }) {
                     </div>
                 </div>
             </div>
-
+    
             {reservationMessage && (
                 <div className="alert alert-info text-center">
                     {reservationMessage}
                 </div>
             )}
-
+    
             {/* Purchase Modal */}
             <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ display: showModal ? 'block' : 'none' }} tabIndex="-1" role="dialog" aria-labelledby="ticketModalLabel" aria-hidden={!showModal}>
                 <div className="modal-dialog" role="document">
@@ -161,7 +164,7 @@ export default function ConcertDetails({ userToken }) {
                 </div>
             </div>
         </main>
-    );
+    );    
 }
 
 // Adding prop types validation for userToken

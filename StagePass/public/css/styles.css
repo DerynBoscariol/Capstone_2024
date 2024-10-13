@@ -1,0 +1,11 @@
+.concert-thumb {
+    height: 30vh;
+    width: auto;
+    object-fit: cover;
+}
+
+.details-img {
+height: 70vh;
+width: auto;
+object-fit: cover;
+}
