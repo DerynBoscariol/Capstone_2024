@@ -42,7 +42,7 @@ app.use(cors({ origin: "*", credentials: true })); // Enable credentials for COR
 
 //Multer Setup
 const fs = require('fs');
-const uploadDir = path.join(__dirname, "/public/imageUploads");
+const uploadDir = path.join(__dirname, "/StagePass/public/imageUploads");
 
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
