@@ -94,8 +94,8 @@ export default function Home() {
                             <div className="card mb-4 shadow-sm">
                                 <img
                                     className="concert-img card-img-top"
-                                    src={`imgs/${concert.image}`}
-                                    alt={concert.concertName}
+                                    src={concert.photoPath}
+                                    alt={concert.artist}
                                 />
                                 <div className="card-body">
                                     <h5 className="card-title">

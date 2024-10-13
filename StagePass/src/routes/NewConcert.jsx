@@ -15,7 +15,7 @@ const NewConcert = () => {
     const [description, setDescription] = useState('');
     const [genre, setGenre] = useState('');
     const [rules, setRules] = useState('');
-    const [image, setImage] = useState('');
+    const [photo, setImage] = useState('');
     const [ticketType, setTicketType] = useState('');
     const [ticketPrice, setTicketPrice] = useState('');
     const [numAvail, setNumAvail] = useState('');
@@ -42,54 +42,57 @@ const NewConcert = () => {
 
     const handleCreateConcert = async (e) => {
         e.preventDefault();
-
+    
         // Ensure the user is logged in before submitting
-        if (!user) {
-            setError('You must be logged in to create a concert');
-            return;
-        }
+            if (!user) {
+                setError('You must be logged in to create a concert');
+                return;
+            }
         
-        // Simple form validation
-        if (!artist || !venue || !tour || !date || !time || !description || !genre || !rules || !ticketType || !ticketPrice || !numAvail) {
-            setError('Please fill out all fields');
-            return;
-        }
-
+            // Simple form validation
+            if (!artist || !venue || !tour || !date || !time || !description || !genre || !rules || !ticketType || !ticketPrice || !numAvail || !photo) {
+                setError('Please fill out all fields');
+                return;
+            }
+        
+            if (parseInt(numAvail) <= 0) {
+                setError('Number of Tickets Available must be greater than zero.');
+                return;
+            }
+    
         const token = localStorage.getItem('token');
         if (!token) {
             setError('No token found. Please log in.');
             return;
         }
-
+    
+        // Create FormData to handle file upload
+        const formData = new FormData();
+        formData.append('artist', artist);
+        formData.append('venue', venue);
+        formData.append('tour', tour);
+        formData.append('date', date);
+        formData.append('time', time);
+        formData.append('description', description);
+        formData.append('genre', genre);
+        formData.append('address', newAddress); // Include the new address here
+        formData.append('rules', rules);
+        formData.append('photo', photo); // Append the file
+        formData.append('tickets[type]', ticketType);
+        formData.append('tickets[price]', parseFloat(ticketPrice));
+        formData.append('tickets[numAvail]', parseInt(numAvail));
+        
         try {
             const response = await fetch('http://localhost:3000/api/NewConcert', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    artist,
-                    venue,
-                    tour,
-                    date,
-                    time,
-                    description,
-                    genre,
-                    address: newAddress, // Include the new address here
-                    rules,
-                    image,
-                    organizer: user.username, // Use the logged-in user's username as the organizer
-                    tickets: {
-                        type: ticketType,
-                        price: parseFloat(ticketPrice),
-                        numAvail: parseInt(numAvail),
-                    },
-                }),
+                body: formData, // Send the FormData directly
             });
-
+    
             const data = await response.json();
-
+    
             if (response.ok) {
                 console.log('Concert created:', data);
                 navigate('/'); // Redirect to the homepage or a different page
@@ -101,6 +104,7 @@ const NewConcert = () => {
             setError('Something went wrong. Please try again.');
         }
     };
+    
 
     const handleAddVenue = async () => {
         console.log('New Venue:', newVenue);
@@ -301,18 +305,16 @@ const NewConcert = () => {
                         />
                     </div>
                     <div className="col-md-6">
-                        <label htmlFor="image" className="form-label">Upload a promo image</label>
+                        <label htmlFor="photo" className="form-label">Upload a promo image</label>
                         <input
                             type="file"
                             accept='.png, .jpg, .jpeg'
-                            id="image"
+                            id="photo"
                             className="form-control"
-                            placeholder="accepting files ending with .png, .jpg, or .jpeg"
-                            value={image}
-                            onChange={(e) => setImage(e.target.value)}
+                            onChange={(e) => setImage(e.target.files[0])} // Correct way to handle file input
                             required
                         />
-                        </div>
+                    </div>
                     </div>
                     <div className="row mb-3">
                         <div className="col-md-4">

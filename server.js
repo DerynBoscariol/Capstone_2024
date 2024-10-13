@@ -6,6 +6,8 @@ const { MongoClient, ObjectId } = require("mongodb");
 const dotenv = require("dotenv");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +39,47 @@ initDB().catch(console.error);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors({ origin: "*", credentials: true })); // Enable credentials for CORS if needed
+
+//Multer Setup
+const fs = require('fs');
+const uploadDir = path.join(__dirname, "/public/imageUploads");
+
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueId = uuidv4(); // Generate a new unique ID for each file
+        const fullFileName = uniqueId + '-' + file.originalname;
+        console.log("Saving file to:", path.join(uploadDir, fullFileName)); // Log the full file path
+        cb(null, fullFileName);
+    }
+    
+});
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png" || file.mimetype === "image/jpg") {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
+};
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 1024 * 1024 * 5, // 5MB limit
+    },
+    fileFilter: fileFilter,
+});
+
+// Serve static files correctly
+app.use("/imageUploads", express.static(path.join(__dirname, 'public/imageUploads')));
+
 
 // Authentication middleware
 const authenticateToken = (req, res, next) => {
@@ -72,7 +115,8 @@ app.post('/api/register', async (req, res) => {
 
     try {
         const existingUser = await db.collection('users').findOne({ email });
-        if (existingUser) {
+        const existingUsername = await db.collection('users').findOne({ username });
+        if (existingUser || existingUsername) {
             return res.status(409).json({ message: 'User already exists.' });
         }
 
@@ -333,7 +377,7 @@ app.get('/api/ConcertDetails/:id', async (req, res) => {
             console.log("Concert not found");
             return res.status(404).json({ message: 'Concert not found' });
         }
-
+        console.log("Photo path:", concert.photoPath);
         res.json(concert);
     } catch (error) {
         console.error('Error fetching concert:', error.message);
@@ -342,9 +386,10 @@ app.get('/api/ConcertDetails/:id', async (req, res) => {
 });
 
 // Plan a new concert endpoint - ORGANIZER
-app.post('/api/NewConcert', authenticateToken, async (req, res) => {
+app.post('/api/NewConcert', authenticateToken, upload.single('photo'), async (req, res) => {
     const { artist, venue, tour, date, time, description, genre, address, rules, tickets } = req.body;
     const organizerUsername = req.user.username;
+    const photo = req.file ? req.file.filename : null; // Check if file exists
 
     if (!artist || (!venue && !address) || !tour || !date || !time || !description || !genre || !tickets || !tickets.type || !tickets.price || !tickets.numAvail) {
         return res.status(400).json({ message: 'Please provide all required fields.' });
@@ -353,6 +398,8 @@ app.post('/api/NewConcert', authenticateToken, async (req, res) => {
     try {
         // Check if the venue exists in the database
         let existingVenue = await db.collection('venues').findOne({ name: venue });
+
+        const photoPath = photo ? `/imageUploads/${photo}` : null; // Include the static path
 
         // If the venue does not exist, create a new venue
         if (!existingVenue) {
@@ -375,6 +422,7 @@ app.post('/api/NewConcert', authenticateToken, async (req, res) => {
             date: concertDate,
             time,
             description,
+            photoPath,
             genre,
             rules,
             organizer: organizerUsername,
@@ -383,7 +431,7 @@ app.post('/api/NewConcert', authenticateToken, async (req, res) => {
                 price: tickets.price,
                 numAvail: tickets.numAvail
             }
-        };
+        }; 
 
         // Insert the concert into the database
         await db.collection('concerts').insertOne(concert);
@@ -416,58 +464,29 @@ app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
 app.put('/api/ConcertDetails/:id', authenticateToken, async (req, res) => {
     const concertId = req.params.id;
     const organizerUsername = req.user.username;
-
-    // Destructure the request body
-    const { artist, venue, tour, date, time, description, genre, rules, tickets } = req.body;
-
-    // Check for missing required fields
-    if (!artist || !venue || !tour || !date || !time || !description || !genre || !tickets || !tickets.type || !tickets.price || !tickets.numAvail) {
-        return res.status(400).json({ message: 'Please provide all required fields.' });
-    }
+    const updateFields = req.body;
 
     try {
-        // Find the concert in the database
-        const concert = await db.collection("concerts").findOne({ _id: new ObjectId(concertId) });
+        // Validate if the concert exists
+        const concert = await db.collection('concerts').findOne({ _id: new ObjectId(concertId), organizer: organizerUsername });
 
-        // Check if concert exists
         if (!concert) {
-            return res.status(404).json({ message: 'Concert not found.' });
+            return res.status(404).json({ message: 'Concert not found or you are not authorized to update it.' });
         }
 
-        // Check if the user is authorized to edit this concert
-        if (concert.organizer !== organizerUsername) {
-            return res.status(403).json({ message: 'You are not authorized to edit this concert.' });
-        }
-
-        // Convert the date and time to a Date object
-        const concertDate = new Date(`${date}T${time}`); // Ensure it's in ISO format
-
-        // Create the updated concert object
-        const updatedConcert = {
-            artist,
-            venue,
-            tour,
-            date: concertDate,
-            time,
-            description,
-            genre,
-            rules,
-            tickets
-        };
-
-        // Update the concert in the database
+        // Update concert details
         await db.collection('concerts').updateOne(
             { _id: new ObjectId(concertId) },
-            { $set: updatedConcert }
+            { $set: updateFields }
         );
 
-        // Respond with a success message and the updated concert data
-        res.json({ message: 'Concert updated successfully!', concert: updatedConcert });
+        res.status(200).json({ message: 'Concert updated successfully.' });
     } catch (error) {
         console.error('Error updating concert:', error.message);
-        res.status(500).json({ message: 'Failed to update concert.', error: error.message });
+        return res.status(500).json({ message: 'Failed to update concert.' });
     }
 });
+
 
 // Delete concert endpoint
 app.delete('/api/concertDetails/:id', async (req, res) => {

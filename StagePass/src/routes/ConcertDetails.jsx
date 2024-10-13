@@ -88,7 +88,11 @@ export default function ConcertDetails({ userToken }) {
     return (
         <main id="main" className="container mt-4">
             <h1 className="text-center mb-4">{concert.artist} at {concert.venue}</h1>
-            <image src={concert.imgPath} alt={concert.imgAltText} />
+                <img 
+                    src={concert.photoPath.replace(/ /g, '%20')} 
+                    alt={`${concert.artist} promo image`} 
+                    className="img-fluid mb-4" 
+                />
             <div className="card mb-4">
                 <div className="card-body">
                     <h5 className="card-title">Concert Details</h5>
@@ -107,7 +111,7 @@ export default function ConcertDetails({ userToken }) {
             <div className="card mb-4">
                 <div className="card-body">
                     <p className="card-text"><strong>Ticket Type:</strong> {concert.tickets.type}</p>
-                    <p className="card-text"><strong>Price:</strong> ${concert.tickets.price.toFixed(2)}</p>
+                    <p className="card-text"><strong>Price:</strong> ${concert.tickets.price/*.toFixed(2)*/}</p>
                     <div className="text-center">
                         <button className="btn btn-primary" onClick={() => setShowModal(true)}>Get Tickets</button>
                     </div>
@@ -129,7 +133,7 @@ export default function ConcertDetails({ userToken }) {
                         </div>
                         <div className="modal-body">
                             <p>Would you like to buy tickets for {concert.artist} at {concert.venue}?</p>
-                            <p><strong>Price per ticket:</strong> ${concert.tickets.price.toFixed(2)}</p>
+                            <p><strong>Price per ticket:</strong> ${concert.tickets.price/*.toFixed(2)*/}</p>
                             
                             {/* Ticket Quantity Selection */}
                             <div className="d-flex justify-content-center align-items-center">
@@ -147,7 +151,7 @@ export default function ConcertDetails({ userToken }) {
                             </div>
                             
                             {/* Total Price Display */}
-                            <p className="mt-3"><strong>Total Price:</strong> ${totalPrice.toFixed(2)}</p>
+                            <p className="mt-3"><strong>Total Price:</strong> ${totalPrice/*.toFixed(2)*/}</p>
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
