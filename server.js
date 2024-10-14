@@ -432,19 +432,41 @@ app.get('/api/concertsByVenue/:venue', async (req, res) => {
 app.get('/api/ConcertDetails/:id', async (req, res) => {
     try {
         const concertId = req.params.id;
+        
+        // Fetch the concert details from the concerts collection
         const concert = await db.collection("concerts").findOne({ _id: new ObjectId(concertId) });
 
         if (!concert) {
             console.log("Concert not found");
             return res.status(404).json({ message: 'Concert not found' });
         }
-        console.log("Photo path:", concert.photoPath);
-        res.json(concert);
+
+        // Fetch the corresponding venue details based on the concert's venue name
+        const venue = await db.collection("venues").findOne({ name: concert.venue });
+
+        if (!venue) {
+            console.log("Venue not found for concert:", concert.venue);
+            return res.status(404).json({ message: 'Venue not found' });
+        }
+
+        // Combine the concert and venue data
+        const concertDetails = {
+            ...concert, // Spread the concert properties
+            venue: {     // Add the venue details
+                _id: venue._id,
+                name: venue.name,
+                address: venue.address,
+            },
+        };
+
+        console.log("Concert details with venue:", concertDetails);
+        res.json(concertDetails);
     } catch (error) {
         console.error('Error fetching concert:', error.message);
         res.status(500).json({ message: 'Server error' });
     }
 });
+
 
 // Plan a new concert endpoint - ORGANIZER
 app.post('/api/NewConcert', authenticateToken, upload.single('photo'), async (req, res) => {

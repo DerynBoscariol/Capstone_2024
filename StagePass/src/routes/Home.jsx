@@ -83,74 +83,78 @@ export default function Home() {
     });
 
     return (
-        <main id="main" className="container mt-5">
-            <h1 className="text-center mb-4">Explore Concerts Near You</h1>
-            <h3 className="mb-3">Upcoming Concerts</h3>
-
-            <div className="mb-3">
-                <label htmlFor="venueSelect" className="form-label">Filter by Venue</label>
-                <select
-                    id="venueSelect"
-                    className="form-select"
-                    value={selectedVenue}
-                    onChange={(e) => setSelectedVenue(e.target.value)}
-                >
-                    <option value="">All Venues</option>
-                    {venues.map(venue => (
-                        <option key={venue._id} value={venue.name}>{venue.name}</option>
-                    ))}
-                </select>
-            </div>
-
-            <div className="mb-3">
-                <label htmlFor="genreSelect" className="form-label">Filter by Genre</label>
-                <select
-                    id="genreSelect"
-                    className="form-select"
-                    value={selectedGenre}
-                    onChange={(e) => setSelectedGenre(e.target.value)}
-                >
-                    <option value="">All Genres</option>
-                    {genres.map(genre => (
-                        <option key={genre} value={genre}>{genre}</option>
-                    ))}
-                </select>
-            </div>
-
-            {filteredConcerts.length === 0 ? (
-                <p>No concerts available for the selected venue and/or genre.</p>
-            ) : (
-                <div className="row">
-                    {filteredConcerts.map((concert) => (
-                        <div key={concert._id} className="col-md-4">
-                            <div className="card mb-4 shadow-sm">
-                                <img
-                                    className="concert-thumb card-img-top"
-                                    src={concert.photoPath}
-                                    alt={concert.artist}
-                                />
-                                <div className="card-body">
-                                    <h5 className="card-title">
-                                        {concert.artist} at {concert.venue}
-                                    </h5>
-                                    <p className="card-text">
-                                        {concert.tour}
-                                    </p>
-                                    <p className="card-text">
-                                        {formatDate(concert.date)} at {formatTime(concert.time)}
-                                    </p>
-                                    <div className="d-flex justify-content-between align-items-center">
-                                        <Link to={`/ConcertDetails/${concert._id}`} className="btn btn-primary">
-                                            Tickets and Info
-                                        </Link>
+            <main id="main" className="container mt-5">
+                <h1 className="text-center mb-4">Explore Concerts Near You</h1>
+                <h3 className="text-center mb-5 text-muted">Upcoming Concerts</h3>
+        
+                <div className="row mb-4 justify-content-center">
+                    <div className="col-md-4 mb-3">
+                        <label htmlFor="venueSelect" className="form-label fw-bold">Filter by Venue</label>
+                        <select
+                            id="venueSelect"
+                            className="form-select"
+                            value={selectedVenue}
+                            onChange={(e) => setSelectedVenue(e.target.value)}
+                        >
+                            <option value="">All Venues</option>
+                            {venues.map(venue => (
+                                <option key={venue._id} value={venue.name}>{venue.name}</option>
+                            ))}
+                        </select>
+                    </div>
+        
+                    <div className="col-md-4 mb-3">
+                        <label htmlFor="genreSelect" className="form-label fw-bold">Filter by Genre</label>
+                        <select
+                            id="genreSelect"
+                            className="form-select"
+                            value={selectedGenre}
+                            onChange={(e) => setSelectedGenre(e.target.value)}
+                        >
+                            <option value="">All Genres</option>
+                            {genres.map(genre => (
+                                <option key={genre} value={genre}>{genre}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+        
+                {filteredConcerts.length === 0 ? (
+                    <div className="alert alert-warning text-center">
+                        No concerts available for the selected venue and/or genre.
+                    </div>
+                ) : (
+                    <div className="row">
+                        {filteredConcerts.map((concert) => (
+                            <div key={concert._id} className="col-md-4">
+                                <div className="card mb-4 shadow-sm border-0">
+                                    <img
+                                        className="concert-thumb card-img-top"
+                                        src={concert.photoPath}
+                                        alt={concert.artist}
+                                    />
+                                    <div className="card-body">
+                                        <h5 className="card-title text-primary">
+                                            {concert.artist} at {concert.venue}
+                                        </h5>
+                                        <p className="card-text">
+                                            <strong>Tour:</strong> {concert.tour}
+                                        </p>
+                                        <p className="card-text">
+                                            <strong>Date:</strong> {formatDate(concert.date)} at {formatTime(concert.time)}
+                                        </p>
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <Link to={`/ConcertDetails/${concert._id}`} className="btn btn-primary">
+                                                Tickets and Info
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </main>
-    );
+                        ))}
+                    </div>
+                )}
+            </main>
+        );
 }
 

@@ -84,29 +84,29 @@ const YourConcerts = () => {
 
     return (
         <div className="container mt-5">
-            <h1>Your Concerts</h1>
-            {loading && <p>Loading...</p>}
-            {error && <div className="alert alert-danger">{error}</div>}
-
+            <h1 className="text-center mb-4">Your Concerts</h1>
+            {loading && <div className="text-center"><p className="text-muted">Loading...</p></div>}
+            {error && <div className="alert alert-danger text-center">{error}</div>}
+    
             <h2 className="mt-4">Upcoming Concerts</h2>
             {upcomingConcerts.length > 0 ? (
                 <div className="row">
                     {upcomingConcerts.map(concert => (
                         <div className="col-md-4 mb-4" key={concert._id}>
-                            <div className="card">
+                            <div className="card shadow-sm rounded">
                                 <div className="card-body">
-                                    <h5 className="card-title">{concert.artist}</h5>
+                                    <h5 className="card-title text-center">{concert.artist}</h5>
                                     <div className="card-text">
                                         <p><strong>Venue:</strong> {concert.venue}</p>
                                         <p><strong>Date:</strong> {formatDate(concert.date)}</p>
                                         <p><strong>Time:</strong> {formatTime(concert.time)}</p>
                                         <p><strong>Tickets Left:</strong> {concert.tickets.numAvail}</p>
                                     </div>
-                                    <div className="d-flex justify-content-around gap-1">
+                                    <div className="d-flex justify-content-between">
                                         <Link to={`/ConcertDetails/${concert._id}`} className="btn btn-primary">
                                             View Details
                                         </Link>
-                                        <Link to={`/EditConcert/${concert._id}`} className="btn btn-primary">
+                                        <Link to={`/EditConcert/${concert._id}`} className="btn btn-secondary">
                                             Edit Concert
                                         </Link>
                                         <button
@@ -122,23 +122,23 @@ const YourConcerts = () => {
                     ))}
                 </div>
             ) : (
-                <p>No upcoming concerts.</p>
+                <p className="text-center">No upcoming concerts.</p>
             )}
-
+    
             <h2 className="mt-4">Past Concerts</h2>
             {pastConcerts.length > 0 ? (
                 <div className="row">
                     {pastConcerts.map(concert => (
                         <div className="col-md-4 mb-4" key={concert._id}>
-                            <div className="card">
+                            <div className="card shadow-sm rounded">
                                 <div className="card-body">
-                                    <h5 className="card-title">{concert.artist}</h5>
+                                    <h5 className="card-title text-center">{concert.artist}</h5>
                                     <div className="card-text">
                                         <p><strong>Venue:</strong> {concert.venue}</p>
                                         <p><strong>Date:</strong> {formatDate(concert.date)}</p>
                                         <p><strong>Time:</strong> {formatTime(concert.time)}</p>
                                     </div>
-                                    <div className="d-flex gap-1">
+                                    <div className="d-flex justify-content-between">
                                         <Link to={`/concertDetails/${concert._id}`} className="btn btn-primary">
                                             View Details
                                         </Link>
@@ -155,10 +155,11 @@ const YourConcerts = () => {
                     ))}
                 </div>
             ) : (
-                <p>No past concerts.</p>
+                <p className="text-center">No past concerts.</p>
             )}
         </div>
     );
+    
 };
 
 export default YourConcerts;

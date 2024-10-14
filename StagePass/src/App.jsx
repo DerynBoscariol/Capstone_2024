@@ -23,7 +23,7 @@ function AppWrapper() {
       <UserProvider navigate={navigate}>
           <div className="d-flex flex-column min-vh-100">
               <Header />
-              <main className="flex-grow-1">
+              <div className="flex-grow-1">
                   <Routes>
                       <Route path="/" element={<Home />} />
                       <Route path="/ConcertsByVenue/:venue" element={<ConcertsByVenue/>} />
@@ -36,7 +36,7 @@ function AppWrapper() {
                       <Route path="/yourConcerts" element={<OrganizerRoute><YourConcerts /></OrganizerRoute>} />
                       <Route path="/EditConcert/:id" element={<OrganizerRoute><EditConcert/></OrganizerRoute>} />
                   </Routes>
-              </main>
+              </div>
               <Footer />
           </div>
       </UserProvider>

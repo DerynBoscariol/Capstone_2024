@@ -22,7 +22,7 @@ export default function ConcertDetails({ userToken }) {
                 }
                 const data = await response.json();
                 setConcert(data);
-                setTotalPrice(data.tickets.price); // Set the initial total price based on ticket price
+                setTotalPrice(parseFloat(data.tickets.price)); // Set the initial total price based on ticket price
             } catch (error) {
                 setError(error.message);
             } finally {
@@ -36,7 +36,7 @@ export default function ConcertDetails({ userToken }) {
     useEffect(() => {
         if (concert) {
             // Update the total price whenever the ticket quantity changes
-            setTotalPrice(ticketQuantity * concert.tickets.price);
+            setTotalPrice(ticketQuantity * parseFloat(concert.tickets.price));
         }
     }, [ticketQuantity, concert]);
 
@@ -87,8 +87,8 @@ export default function ConcertDetails({ userToken }) {
 
     return (
         <main id="main" className="container mt-4">
-            <h1 className="text-center mb-4">{concert.artist} at {concert.venue}</h1>
-            
+            <h1 className="text-center mb-4">{concert.artist} at {concert.venue.name}</h1>
+    
             <div className="d-flex flex-column flex-md-row mb-4 gap-5">
                 <img 
                     src={concert.photoPath.replace(/ /g, '%20')} 
@@ -103,7 +103,7 @@ export default function ConcertDetails({ userToken }) {
                         <p className="card-text"><strong>Date:</strong> {formatDate(concert.date)}</p>
                         <p className="card-text"><strong>Time:</strong> {formatTime(concert.time)}</p>
                         <p className="card-text"><strong>Description:</strong> {concert.description}</p>
-                        <p className="card-text"><strong>Address:</strong> {concert.address}</p>
+                        <p className="card-text"><strong>Address:</strong> {concert.venue.address}</p> {/* Updated line */}
                         <p className="card-text"><strong>Rules:</strong> {concert.rules}</p>
                         <p className="card-text"><strong>Organizer:</strong> {concert.organizer}</p>
                     </div>
@@ -114,7 +114,7 @@ export default function ConcertDetails({ userToken }) {
             <div className="card mb-4">
                 <div className="card-body">
                     <p className="card-text"><strong>Ticket Type:</strong> {concert.tickets.type}</p>
-                    <p className="card-text"><strong>Price:</strong> ${concert.tickets.price/*.toFixed(2)*/}</p>
+                    <p className="card-text"><strong>Price:</strong> ${parseFloat(concert.tickets.price).toFixed(2)}</p>
                     <div className="text-center">
                         <button className="btn btn-primary" onClick={() => setShowModal(true)}>Get Tickets</button>
                     </div>
@@ -135,8 +135,8 @@ export default function ConcertDetails({ userToken }) {
                             <h5 className="modal-title" id="ticketModalLabel">Buy Tickets</h5>
                         </div>
                         <div className="modal-body">
-                            <p>Would you like to buy tickets for {concert.artist} at {concert.venue}?</p>
-                            <p><strong>Price per ticket:</strong> ${concert.tickets.price/*.toFixed(2)*/}</p>
+                            <p>Would you like to buy tickets for {concert.artist} at {concert.venue.name}?</p> {/* Updated line */}
+                            <p><strong>Price per ticket:</strong> ${parseFloat(concert.tickets.price).toFixed(2)}</p>
                             
                             {/* Ticket Quantity Selection */}
                             <div className="d-flex justify-content-center align-items-center">
@@ -154,7 +154,7 @@ export default function ConcertDetails({ userToken }) {
                             </div>
                             
                             {/* Total Price Display */}
-                            <p className="mt-3"><strong>Total Price:</strong> ${totalPrice/*.toFixed(2)*/}</p>
+                            <p className="mt-3"><strong>Total Price:</strong> ${parseFloat(totalPrice).toFixed(2)}</p>
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
@@ -164,10 +164,10 @@ export default function ConcertDetails({ userToken }) {
                 </div>
             </div>
         </main>
-    );    
+    );
 }
 
-// Adding prop types validation for userToken
+// Adding prop types for better documentation and validation
 ConcertDetails.propTypes = {
-    userToken: PropTypes.string.isRequired,
+    userToken: PropTypes.string, // Optional userToken prop
 };

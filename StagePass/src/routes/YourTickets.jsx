@@ -48,9 +48,9 @@ export default function YourTickets({ userToken }) {
                         const concert = ticket.concert || {};
                         return (
                             <div className="col-md-4" key={ticket.reservationNumber}>
-                                <div className="card mb-4 shadow" style={{ border: "2px dashed #f39c12" }}>
-                                    <div className="card-body" style={{ backgroundColor: "#fefae0" }}>
-                                        <h5 className="card-title fw-bold text-danger">
+                                <div className="ticket card mb-4 shadow">
+                                    <div className="ticket-body card-body">
+                                        <h5 className="ticket-title card-title fw-bold">
                                             {concert.artist} at {concert.venue}
                                         </h5>
                                         <p className="card-text">
