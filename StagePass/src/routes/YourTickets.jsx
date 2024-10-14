@@ -32,7 +32,30 @@ export default function YourTickets({ userToken }) {
     
         fetchTickets();
     }, [userToken]);
-    
+
+    const handleDelete = async (reservationNumber) => {
+        if (window.confirm("Are you sure you want to delete this ticket reservation?")) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/reserveTickets/${reservationNumber}`, {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: `Bearer ${userToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete ticket reservation');
+                }
+
+                // Update state to remove the deleted ticket
+                setTickets((prevTickets) =>
+                    prevTickets.filter(ticket => ticket.reservationNumber !== reservationNumber)
+                );
+            } catch (error) {
+                setError(error.message);
+            }
+        }
+    };
 
     if (loading) return <p>Loading your tickets...</p>;
     if (error) return <p>Error: {error}</p>;
@@ -60,11 +83,19 @@ export default function YourTickets({ userToken }) {
                                             <strong>Ticket Type:</strong> <span className="text-muted">{ticket.ticketType || 'Unknown'}</span><br />
                                             <strong>Quantity:</strong> <span className="text-muted">{ticket.quantity}</span><br />
                                         </p>
-                                        {concert._id && (
-                                            <Link to={`/concertDetails/${concert._id}`} className="btn btn-primary">
-                                                View Details
-                                            </Link>
-                                        )}
+                                        <div className="d-flex justify-content-between">
+                                            {concert._id && (
+                                                <Link to={`/concertDetails/${concert._id}`} className="btn btn-primary">
+                                                    View Details
+                                                </Link>
+                                            )}
+                                            <button
+                                                className="btn btn-danger"
+                                                onClick={() => handleDelete(ticket.reservationNumber)}
+                                            >
+                                                Cancel Reservation
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -80,4 +111,3 @@ export default function YourTickets({ userToken }) {
 YourTickets.propTypes = {
     userToken: PropTypes.string.isRequired,
 };
-

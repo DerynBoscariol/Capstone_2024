@@ -48,28 +48,45 @@ export default function Login() {
     };
 
     return (
-        <div>
-            <h1>Login</h1>
-            <form onSubmit={handleSubmit}>
+        <div className="d-flex justify-content-center vh-50">
+    <div className="card p-4 shadow-sm mt-5" style={{ width: '400px' }}>
+        <h1 className="text-center mb-4">Log in to your account</h1>
+        <form onSubmit={handleSubmit}>
+            <div className="mb-3">
                 <input
                     type="email"
+                    className="form-control"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                 />
+            </div>
+            <div className="mb-3">
                 <input
                     type="password"
+                    className="form-control"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                 />
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Logging in...' : 'Login'}
-                </button>
-                {error && <p>{error}</p>}
-            </form>
-        </div>
+            </div>
+            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+                {loading ? 'Logging in...' : 'Login'}
+            </button>
+            <div className="text-center mt-3">
+                <p className="mb-1">Don&apos;t have an account?</p>
+                <a href="/register" className="btn btn-link">Register Here</a>
+            </div>
+            {error && (
+                <div className="alert alert-danger mt-3" role="alert">
+                    {error}
+                </div>
+            )}
+        </form>
+    </div>
+</div>
+
     );
 }

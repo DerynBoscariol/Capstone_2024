@@ -7,7 +7,7 @@ function Header() {
     const { user, handleLogout } = useUser(); // Access user info and handleLogout from UserContext
     return (
         <header className="header-container d-flex flex-wrap justify-content-between align-items-center py-4 px-5 mb-4 border-bottom">
-            <div className="d-flex align-items-center">
+            <div className="d-flex align-items-baseline">
                 <div className="me-3">
                     <SiteName />
                 </div>
@@ -28,12 +28,12 @@ function Header() {
                                 </>
                             )}
                             <li><Link className="dropdown-item" to="/Settings">Settings</Link></li>
-                            <li><a className="dropdown-item" href="#" onClick={handleLogout}>Logout</a></li>
+                            <li><a className="dropdown-item" href="#" onClick={handleLogout}>Log out</a></li>
                         </ul>
                     </div>
                 ) : (
                     <div className="d-flex">
-                        <Link to="/login" className="btn btn-primary me-2">Login</Link>
+                        <Link to="/login" className="btn btn-primary me-2">Log in</Link>
                         <Link to="/register" className="btn btn-secondary">Register</Link>
                     </div>
                 )}

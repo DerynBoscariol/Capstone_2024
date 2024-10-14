@@ -596,6 +596,38 @@ app.delete('/api/concertDetails/:id', async (req, res) => {
     }
 });
 
+// Delete a ticket reservation
+app.delete('/api/reserveTickets/:id', authenticateToken, async (req, res) => {
+    const reservationId = req.params.id; // Get the reservation ID from the URL
+    const userId = req.user.id; // Get the user ID from the authenticated request
+
+    try {
+        // Find the reservation by ID and ensure it belongs to the user
+        const reservation = await db.collection('reservations').findOne({ _id: new ObjectId(reservationId), userId });
+
+        if (!reservation) {
+            return res.status(404).json({ message: 'Reservation not found or does not belong to the user.' });
+        }
+
+        // Optionally, you may want to update the available tickets if needed
+        const concert = await db.collection('concerts').findOne({ _id: new ObjectId(reservation.concertId) });
+        if (concert) {
+            await db.collection('concerts').updateOne(
+                { _id: new ObjectId(reservation.concertId) },
+                { $inc: { 'tickets.numAvail': reservation.numTickets } } // Restore the reserved tickets
+            );
+        }
+
+        // Delete the reservation
+        await db.collection('reservations').deleteOne({ _id: new ObjectId(reservationId) });
+
+        return res.status(200).json({ message: 'Reservation deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting reservation:', error.message);
+        return res.status(500).json({ message: 'Failed to delete reservation.' });
+    }
+});
+
 
 
 // Set up server listening

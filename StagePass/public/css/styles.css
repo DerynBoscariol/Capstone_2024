@@ -26,7 +26,7 @@ object-fit: cover;
 
 /* HEADER */
 .header-container {
-    background-color: #6139c5; 
+    background-color: #462698; 
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
 }
 
@@ -42,18 +42,21 @@ object-fit: cover;
 }
 
 .btn-primary:hover {
-    background-color: #0056b3; /* Darker shade on hover */
+    background-color: #3a73c4 !important; /* Darker shade on hover */
     transform: translateY(-2px); /* Subtle lift effect */
 }
 
 .btn-secondary {
     border-radius: 20px;
     transition: background-color 0.3s, transform 0.3s;
+    background-color: #ffffff;
+    color: #462698;
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268; /* Darker shade on hover */
+    background-color: #5c4771; /* Darker shade on hover */
     transform: translateY(-2px);
+    color: #ffffff;
 }
 
 /* Dropdown menu styling */
@@ -88,9 +91,9 @@ object-fit: cover;
     color: #007bff; /* Change color on hover for interactivity */
 }
 
-/* Optional: Adding an icon before the text */
+
 #site-name::before {
-    content: url('/vite.svg'); /* Path to your logo/icon */
+    content: url('/ticket.svg'); /* Path to your logo/icon */
     width: 50px; /* Adjust icon size */
     height: 50px; /* Adjust icon size */
     margin-right: 10px; /* Space between icon and text */
@@ -101,7 +104,7 @@ object-fit: cover;
 }
 
 .ticket-body {
-    background-color: #fefae0;
+    background-color: #f8f5e1;
 }
 
 .ticket-title {

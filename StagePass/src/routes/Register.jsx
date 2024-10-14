@@ -33,43 +33,60 @@ const Register = () => {
     };
 
     return (
-        <main>
-            <h1>Register for an Account</h1>
-            <form onSubmit={handleRegister}>
-                {error && <p style={{ color: 'red' }}>{error}</p>} {/* Display error message */}
-                <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Username"
-                    required
-                />
-                <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email"
-                    required
-                />
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    required
-                />
-                <div>
-                    <input
-                        type="checkbox"
-                        id="organizer"
-                        checked={isOrganizer}
-                        onChange={(e) => setIsOrganizer(e.target.checked)}
-                    />
-                    <label htmlFor="organizer">Are you an organizer?</label>
-                </div>
-                <button type="submit">Register</button>
-            </form>
+        <main className="d-flex justify-content-center vh-50">
+            <div className="card p-4 shadow-sm" style={{ width: '400px' }}>
+                <h1 className="text-center mb-4">Register for an Account</h1>
+                <form onSubmit={handleRegister}>
+                    {error && (
+                        <div className="alert alert-danger" role="alert">
+                            {error}
+                        </div>
+                    )}
+                    <div className="mb-3">
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Username"
+                            required
+                        />
+                    </div>
+                    <div className="mb-3">
+                        <input
+                            type="email"
+                            className="form-control"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Email"
+                            required
+                        />
+                    </div>
+                    <div className="mb-3">
+                        <input
+                            type="password"
+                            className="form-control"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Password"
+                            required
+                        />
+                    </div>
+                    <div className="mb-3 form-check">
+                        <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="organizer"
+                            checked={isOrganizer}
+                            onChange={(e) => setIsOrganizer(e.target.checked)}
+                        />
+                        <label htmlFor="organizer" className="form-check-label">Are you an organizer?</label>
+                    </div>
+                    <button type="submit" className="btn btn-primary w-100">Register</button>
+                </form>
+            </div>
         </main>
+
     );
 };
 
