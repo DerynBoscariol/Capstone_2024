@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useUser } from '../UserContext'; // Import the useUser hook to get the current user
+import { formatDateForInput } from '../utils';
 
 const EditConcert = () => {
     const { id } = useParams(); // Get concert ID from URL parameters
@@ -267,7 +268,7 @@ const EditConcert = () => {
                             type="date"
                             id="date"
                             className="form-control"
-                            value={concertDetails.date}
+                            value={formatDateForInput(concertDetails.date)}
                             onChange={(e) => setConcertDetails({ ...concertDetails, date: e.target.value })}
                             required
                         />
@@ -294,15 +295,28 @@ const EditConcert = () => {
                         required
                     />
                 </div>
-                <div className="mb-3">
-                    <label htmlFor="rules" className="form-label">Rules</label>
-                    <textarea
-                        id="rules"
-                        className="form-control"
-                        value={concertDetails.rules}
-                        onChange={(e) => setConcertDetails({ ...concertDetails, rules: e.target.value })}
-                        required
-                    />
+                <div className="row mb-3">
+                    <div className="col-md-6">
+                        <label htmlFor="rules" className="form-label">Rules</label>
+                        <textarea
+                            id="rules"
+                            className="form-control"
+                            value={concertDetails.rules}
+                            onChange={(e) => setConcertDetails({ ...concertDetails, rules: e.target.value })}
+                            required
+                        />
+                    </div>
+                    <div className="col-md-6">
+                        <label htmlFor="photo" className="form-label">Change a promo image</label>
+                        <input
+                            type="file"
+                            accept='.png, .jpg, .jpeg'
+                            id="photo"
+                            className="form-control"
+                            onChange={(e) => setConcertDetails({ ...concertDetails, photo: e.target.files[0]})} 
+                            required
+                        />
+                    </div>
                 </div>
                 <div className="row mb-3">
                 <div className="col-md-4">

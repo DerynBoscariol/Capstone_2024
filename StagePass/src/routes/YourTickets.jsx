@@ -43,30 +43,36 @@ export default function YourTickets({ userToken }) {
             {tickets.length === 0 ? (
                 <p className="text-center">You have no reserved tickets.</p>
             ) : (
-                <div className="row ">
-                    {tickets.map((ticket) => (
-                        <div className="col-md-4" key={ticket.reservationNumber}>
-                            <div className="card mb-4 shadow" style={{ border: "2px dashed #f39c12" }}>
-                                <div className="card-body" style={{ backgroundColor: "#fefae0" }}>
-                                    <h5 className="card-title fw-bold text-danger">{ticket.concert.artist} at {ticket.concert.venue}</h5>
-                                    <p className="card-text">
-                                        <strong>Reservation Number:</strong> <span className="text-muted">{ticket.reservationNumber}</span><br />
-                                        <strong>Date:</strong> <span className="text-muted">{formatDate(ticket.concert.date)}</span><br />
-                                        <strong>Time:</strong> <span className="text-muted">{formatTime(ticket.concert.time)}</span><br />
-                                        <strong>Ticket Type:</strong> <span className="text-muted">{ticket.ticketType}</span><br />
-                                        <strong>Quantity:</strong> <span className="text-muted">{ticket.quantity}</span><br />
-                                    </p>
-                                    <Link to={`/concertDetails/${ticket.concert._id}`} className="btn btn-primary">
-                                        View Details
-                                    </Link>
+                <div className="row">
+                    {tickets.map((ticket) => {
+                        const concert = ticket.concert || {};
+                        return (
+                            <div className="col-md-4" key={ticket.reservationNumber}>
+                                <div className="card mb-4 shadow" style={{ border: "2px dashed #f39c12" }}>
+                                    <div className="card-body" style={{ backgroundColor: "#fefae0" }}>
+                                        <h5 className="card-title fw-bold text-danger">
+                                            {concert.artist} at {concert.venue}
+                                        </h5>
+                                        <p className="card-text">
+                                            <strong>Reservation Number:</strong> <span className="text-muted">{ticket.reservationNumber}</span><br />
+                                            <strong>Date:</strong> <span className="text-muted">{concert.date ? formatDate(concert.date) : 'TBD'}</span><br />
+                                            <strong>Time:</strong> <span className="text-muted">{concert.time ? formatTime(concert.time) : 'TBD'}</span><br />
+                                            <strong>Ticket Type:</strong> <span className="text-muted">{ticket.ticketType || 'Unknown'}</span><br />
+                                            <strong>Quantity:</strong> <span className="text-muted">{ticket.quantity}</span><br />
+                                        </p>
+                                        {concert._id && (
+                                            <Link to={`/concertDetails/${concert._id}`} className="btn btn-primary">
+                                                View Details
+                                            </Link>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>
-
     );
 }
 
@@ -74,3 +80,4 @@ export default function YourTickets({ userToken }) {
 YourTickets.propTypes = {
     userToken: PropTypes.string.isRequired,
 };
+

@@ -181,16 +181,33 @@ app.get('/api/AllConcerts', async (req, res) => {
 // Endpoint for upcoming concerts
 app.get('/api/FutureConcerts', async (req, res) => {
     const currentDate = new Date(); // Get the current date
-    //console.log("Current Date:", currentDate); // Log current date
+    const { genre } = req.query; // Get the genre from the query parameters
+
     try {
+        // Create the base filter for future concerts
+        const filter = { date: { $gte: currentDate } };
+
+        // If a genre is provided, add it to the filter
+        if (genre) {
+            filter.genre = genre;
+        }
+
         const futureConcerts = await db.collection("concerts")
-            .find({ date: { $gte: currentDate } })
+            .find(filter)
             .sort({ date: 1 })
             .toArray();
-        //console.log("Future concerts fetched:", futureConcerts); // Log fetched concerts
+
+        // Log fetched concerts for debugging
+        console.log("Future concerts fetched:", futureConcerts);
+
+        // Check if concerts were found
+        if (futureConcerts.length === 0) {
+            return res.status(404).json({ message: 'No future concerts found.' });
+        }
+
         res.json(futureConcerts);
     } catch (error) {
-        console.error('Error fetching all concerts:', error.message);
+        console.error('Error fetching future concerts:', error.message);
         res.status(500).json({ message: 'Failed to fetch concerts' });
     }
 });
@@ -212,8 +229,22 @@ app.post('/api/reserveTickets', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'Concert not found.' });
         }
 
+        // Ensure numAvail is a number
+        let numAvail = concert.tickets.numAvail;
+
+        // If numAvail is a string, convert it to a number
+        if (typeof numAvail === 'string') {
+            numAvail = parseInt(numAvail, 10);
+
+            // Update the document in the database with the numeric value of numAvail
+            await db.collection('concerts').updateOne(
+                { _id: new ObjectId(concertId) },
+                { $set: { 'tickets.numAvail': numAvail } }
+            );
+        }
+
         // Check if enough tickets are available
-        if (concert.tickets.numAvail < numTickets) {
+        if (numAvail < numTickets) {
             return res.status(400).json({ message: 'Not enough tickets available.' });
         }
 
@@ -228,7 +259,7 @@ app.post('/api/reserveTickets', authenticateToken, async (req, res) => {
             userId,
             concertId,
             numTickets,
-            status: 'Reserved', 
+            status: 'Reserved',
             reservedAt: new Date(),
         };
         await db.collection('reservations').insertOne(reservation);
@@ -239,6 +270,7 @@ app.post('/api/reserveTickets', authenticateToken, async (req, res) => {
         return res.status(500).json({ message: 'Failed to reserve tickets.' });
     }
 });
+
 
 // Get user's reserved tickets
 app.get('/api/user/tickets', authenticateToken, async (req, res) => {
@@ -252,21 +284,50 @@ app.get('/api/user/tickets', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'No tickets found for this user.' });
         }
 
-        // You may want to populate concert details or format the response as needed
+        // Populate concert details
         const ticketsWithConcertDetails = await Promise.all(tickets.map(async (ticket) => {
-            const concert = await db.collection('concerts').findOne({ _id: new ObjectId(ticket.concertId) });
-            return {
-                reservationNumber: ticket._id, // Use the reservation ID as the reservation number
-                concert,
-                ticketType: concert.tickets.type, // Adjust according to your structure
-                quantity: ticket.numTickets, // Assuming you store this in your reservations
-            };
+            try {
+                const concert = await db.collection('concerts').findOne({ _id: new ObjectId(ticket.concertId) });
+
+                if (!concert) {
+                    return { 
+                        reservationNumber: ticket._id,
+                        error: 'Concert not found', // Handle missing concert gracefully
+                        quantity: ticket.numTickets
+                    };
+                }
+
+                return {
+                    reservationNumber: ticket._id, // Use the reservation ID as the reservation number
+                    concert,
+                    ticketType: concert.tickets ? concert.tickets.type : 'Unknown', // Safeguard in case tickets field is missing
+                    quantity: ticket.numTickets,
+                };
+            } catch (error) {
+                console.error('Error fetching concert details:', error.message);
+                return { 
+                    reservationNumber: ticket._id, 
+                    error: 'Error fetching concert details', 
+                    quantity: ticket.numTickets 
+                };
+            }
         }));
 
         res.json(ticketsWithConcertDetails);
     } catch (error) {
         console.error('Error fetching tickets:', error.message);
         return res.status(500).json({ message: 'Failed to fetch tickets.' });
+    }
+});
+
+// Returns all genres
+app.get('/api/Genres', async (req, res) => {
+    try {
+        const genres = await db.collection("concerts").distinct("genre");
+        res.json(genres);
+    } catch (error) {
+        console.error('Error fetching genres:', error.message);
+        res.status(500).json({ message: 'Failed to fetch genres' });
     }
 });
 
@@ -493,19 +554,26 @@ app.delete('/api/concertDetails/:id', async (req, res) => {
     const concertId = req.params.id; // Get the concert ID from the URL parameters
 
     try {
-        // Assuming you have a MongoDB connection established, delete the concert
-        const result = await db.collection('concerts').deleteOne({ _id: new ObjectId(concertId) });
+        // Start by deleting the concert
+        const concertResult = await db.collection('concerts').deleteOne({ _id: new ObjectId(concertId) });
 
-        if (result.deletedCount === 1) {
-            res.status(200).json({ message: 'Concert deleted successfully.' });
+        if (concertResult.deletedCount === 1) {
+            // Now delete any reservations associated with the concert
+            const reservationResult = await db.collection('reservations').deleteMany({ concertId: concertId });
+
+            res.status(200).json({ 
+                message: 'Concert and associated reservations deleted successfully.',
+                deletedReservationsCount: reservationResult.deletedCount
+            });
         } else {
             res.status(404).json({ message: 'Concert not found.' });
         }
     } catch (error) {
-        console.error('Error deleting concert:', error);
-        res.status(500).json({ message: 'Error deleting concert.' });
+        console.error('Error deleting concert and reservations:', error);
+        res.status(500).json({ message: 'Error deleting concert and associated reservations.' });
     }
 });
+
 
 
 // Set up server listening

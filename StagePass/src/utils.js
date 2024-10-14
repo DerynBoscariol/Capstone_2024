@@ -14,3 +14,9 @@ export const formatTime = (timeString) => {
     hour = hour % 12 || 12;
     return `${hour}:${minutes} ${isPM ? 'PM' : 'AM'}`;
 };
+
+// Format date for input field
+export const formatDateForInput = (dateString) => {
+    const date = new Date(dateString); 
+    return date.toISOString().split('T')[0]; // Returns the date in YYYY-MM-DD format
+};

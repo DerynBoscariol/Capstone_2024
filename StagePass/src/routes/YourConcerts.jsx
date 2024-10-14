@@ -100,6 +100,7 @@ const YourConcerts = () => {
                                         <p><strong>Venue:</strong> {concert.venue}</p>
                                         <p><strong>Date:</strong> {formatDate(concert.date)}</p>
                                         <p><strong>Time:</strong> {formatTime(concert.time)}</p>
+                                        <p><strong>Tickets Left:</strong> {concert.tickets.numAvail}</p>
                                     </div>
                                     <div className="d-flex justify-content-around gap-1">
                                         <Link to={`/ConcertDetails/${concert._id}`} className="btn btn-primary">

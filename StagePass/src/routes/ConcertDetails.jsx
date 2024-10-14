@@ -70,7 +70,7 @@ export default function ConcertDetails({ userToken }) {
             setReservationMessage('An error occurred while reserving tickets: ' + error.message);
         }
         // Don't close the modal immediately to allow user to see the message
-        // setShowModal(false); // Comment this out
+        setShowModal(false);
         setTicketQuantity(1); // Reset the ticket quantity after the reservation attempt
     };
 
