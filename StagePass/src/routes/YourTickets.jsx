@@ -72,9 +72,9 @@ export default function YourTickets({ userToken }) {
                 <div className="row">
                     {tickets.map((ticket) => {
                         const concert = ticket.concert || {};
-                        const venue = concert.venue || {}; // Access the venue details
+                        const venue = concert.venue || {};
 
-                        // Calculate the total price owed for this ticket
+                        // Calculate the total price owed for this ticket reservation
                         const totalPrice = concert.tickets.price * ticket.quantity;
 
                         return (

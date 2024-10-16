@@ -525,12 +525,6 @@ app.put('/api/ConcertDetails/:id', authenticateToken, upload.single('photo'), as
     }
 });
 
-
-
-
-
-
-
 // Your Concerts endpoint - ORGANIZER
 app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
     const organizerUsername = req.user?.username;
@@ -541,13 +535,31 @@ app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
     }
 
     try {
-        const concerts = await db.collection('concerts').find({ organizer: organizerUsername }).toArray();
+        // Fetch concerts with venue details
+        const concerts = await db.collection('concerts').aggregate([
+            {
+                $lookup: {
+                    from: 'venues', // venues collection
+                    localField: 'venueId', // The field in concerts that references the venue
+                    foreignField: '_id', // The field in venues collection that matches venueId
+                    as: 'venueDetails'
+                }
+            },
+            {
+                $unwind: { 
+                    path: '$venueDetails', 
+                    preserveNullAndEmptyArrays: true // Keeps concerts without a venue
+                }
+            }
+        ]).toArray();
+
         return res.json(concerts);
     } catch (error) {
         console.error('Error fetching concerts:', error.message);
         return res.status(500).json({ message: 'Failed to fetch concerts' });
     }
 });
+
 
 // Reserve tickets for a concert
 app.post('/api/reserveTickets', authenticateToken, async (req, res) => {
@@ -620,7 +632,7 @@ app.get('/api/user/tickets', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'No tickets found for this user.' });
         }
 
-        // Populate concert details
+        // Populate concert details and venue information
         const ticketsWithConcertDetails = await Promise.all(tickets.map(async (ticket) => {
             try {
                 const concert = await db.collection('concerts').findOne({ _id: new ObjectId(ticket.concertId) });
@@ -633,9 +645,19 @@ app.get('/api/user/tickets', authenticateToken, async (req, res) => {
                     };
                 }
 
+                // Fetch the corresponding venue details based on concert's venueId
+                const venue = await db.collection('venues').findOne({ _id: new ObjectId(concert.venueId) });
+
                 return {
                     reservationNumber: ticket._id, // Use the reservation ID as the reservation number
-                    concert,
+                    concert: {
+                        ...concert, // Spread concert properties
+                        venue: venue ? {
+                            _id: venue._id,
+                            name: venue.name,
+                            address: venue.address,
+                        } : null // Handle missing venue gracefully
+                    },
                     ticketType: concert.tickets ? concert.tickets.type : 'Unknown', // Safeguard in case tickets field is missing
                     quantity: ticket.numTickets,
                 };
@@ -655,6 +677,7 @@ app.get('/api/user/tickets', authenticateToken, async (req, res) => {
         return res.status(500).json({ message: 'Failed to fetch tickets.' });
     }
 });
+
 
 // Delete a ticket reservation
 app.delete('/api/reserveTickets/:id', authenticateToken, async (req, res) => {

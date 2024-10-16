@@ -97,7 +97,7 @@ const YourConcerts = () => {
                                 <div className="card-body">
                                     <h5 className="card-title text-center">{concert.artist}</h5>
                                     <div className="card-text">
-                                        <p><strong>Venue:</strong> {concert.venue}</p>
+                                        <p><strong>Venue:</strong> {concert.venueDetails.name }</p>
                                         <p><strong>Date:</strong> {formatDate(concert.date)}</p>
                                         <p><strong>Time:</strong> {formatTime(concert.time)}</p>
                                         <p><strong>Tickets Left:</strong> {concert.tickets.numAvail}</p>
@@ -134,7 +134,7 @@ const YourConcerts = () => {
                                 <div className="card-body">
                                     <h5 className="card-title text-center">{concert.artist}</h5>
                                     <div className="card-text">
-                                        <p><strong>Venue:</strong> {concert.venue}</p>
+                                        <p><strong>Venue:</strong> {concert.venueDetails.name }</p>
                                         <p><strong>Date:</strong> {formatDate(concert.date)}</p>
                                         <p><strong>Time:</strong> {formatTime(concert.time)}</p>
                                     </div>
