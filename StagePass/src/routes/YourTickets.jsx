@@ -63,26 +63,34 @@ export default function YourTickets({ userToken }) {
     return (
         <div className="container my-5">
             <h1 className="text-center mb-4">Your Tickets</h1>
+            <p className="text-center mb-4">
+                Upon arrival at the venue, provide your reservation number to the staff at the door and pay onsite with cash or credit.
+            </p>
             {tickets.length === 0 ? (
                 <p className="text-center">You have no reserved tickets.</p>
             ) : (
                 <div className="row">
                     {tickets.map((ticket) => {
                         const concert = ticket.concert || {};
+                        // Calculate the total price owed for this ticket
+                        const totalPrice = concert.tickets.price * ticket.quantity;
+    
                         return (
-                            <div className="col-md-4" key={ticket.reservationNumber}>
-                                <div className="ticket card mb-4 shadow">
+                            <div className="col-md-4 mb-4" key={ticket.reservationNumber}>
+                                <div className="ticket card shadow">
                                     <div className="ticket-body card-body">
-                                        <h5 className="ticket-title card-title fw-bold">
+                                        <h5 className="ticket-title card-title fw-bold" style={{ color: '#007bff' }}>
                                             {concert.artist} at {concert.venue}
                                         </h5>
-                                        <p className="card-text">
-                                            <strong>Reservation Number:</strong> <span className="text-muted">{ticket.reservationNumber}</span><br />
-                                            <strong>Date:</strong> <span className="text-muted">{concert.date ? formatDate(concert.date) : 'TBD'}</span><br />
-                                            <strong>Time:</strong> <span className="text-muted">{concert.time ? formatTime(concert.time) : 'TBD'}</span><br />
-                                            <strong>Ticket Type:</strong> <span className="text-muted">{ticket.ticketType || 'Unknown'}</span><br />
-                                            <strong>Quantity:</strong> <span className="text-muted">{ticket.quantity}</span><br />
-                                        </p>
+                                        <ul className="list-unstyled">
+                                            <li><strong>Reservation Number:</strong> <span className="text-muted">{ticket.reservationNumber}</span></li>
+                                            <li><strong>Date:</strong> <span className="text-muted">{formatDate(concert.date)}</span></li>
+                                            <li><strong>Time:</strong> <span className="text-muted">{formatTime(concert.time)}</span></li>
+                                            <li><strong>Ticket Type:</strong> <span className="text-muted">{ticket.ticketType}</span></li>
+                                            <li><strong>Price Per Ticket:</strong> <span className="text-muted">${parseFloat(concert.tickets.price).toFixed(2)}</span></li>
+                                            <li><strong>Quantity:</strong> <span className="text-muted">{ticket.quantity}</span></li>
+                                            <li><strong>Total Price:</strong> <span className="text-muted">${totalPrice.toFixed(2)}</span></li>
+                                        </ul>
                                         <div className="d-flex justify-content-between">
                                             {concert._id && (
                                                 <Link to={`/concertDetails/${concert._id}`} className="btn btn-primary">
@@ -105,6 +113,7 @@ export default function YourTickets({ userToken }) {
             )}
         </div>
     );
+    
 }
 
 // Adding prop types validation for userToken

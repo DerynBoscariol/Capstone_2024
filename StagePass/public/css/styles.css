@@ -37,13 +37,14 @@ object-fit: cover;
 }
 
 .btn-primary {
-    border-radius: 20px; /* Rounded buttons for a modern touch */
-    transition: background-color 0.3s, transform 0.3s; /* Smooth transitions */
+    border-radius: 20px; 
+    transition: background-color 0.3s, transform 0.3s; 
+    border: none;
 }
 
 .btn-primary:hover {
-    background-color: #3a73c4 !important; /* Darker shade on hover */
-    transform: translateY(-2px); /* Subtle lift effect */
+    background-color: #3a73c4 !important; 
+    transform: translateY(-2px); 
 }
 
 .btn-secondary {
@@ -54,32 +55,32 @@ object-fit: cover;
 }
 
 .btn-secondary:hover {
-    background-color: #5c4771; /* Darker shade on hover */
+    background-color: #5c4771; 
     transform: translateY(-2px);
     color: #ffffff;
 }
 
 /* Dropdown menu styling */
 .dropdown-menu {
-    border-radius: 0.5rem; /* Rounded corners for dropdown */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 0.5rem; 
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); 
 }
 
 .dropdown-item:hover {
-    background-color: #f1f1f1; /* Highlight on hover */
+    background-color: #f1f1f1;
 }
 
 /* Site Name */
 #site-name {
-    font-family: 'Arial', sans-serif; /* Choose a clean, professional font */
-    font-weight: bold; /* Bold text for emphasis */
-    font-size: 2rem; /* Larger size for visibility */
-    letter-spacing: 1px; /* Spacing between letters for readability */
-    color: #EEE5E9; /* Dark color for good contrast */
-    text-transform: uppercase; /* Make the text uppercase for a strong presence */
-    margin: 0; /* Remove default margin */
+    font-family: 'Arial', sans-serif; 
+    font-weight: bold; 
+    font-size: 2rem;
+    letter-spacing: 1px; 
+    color: #EEE5E9; 
+    text-transform: uppercase; 
+    margin: 0; 
     align-items: center; 
-    transition: color 0.3s; /* Smooth color transition on hover */
+    transition: color 0.3s; 
 }
 
 #site-name a {
@@ -88,15 +89,15 @@ object-fit: cover;
 }
 
 #site-name:hover {
-    color: #007bff; /* Change color on hover for interactivity */
+    color: #3a73c4; 
 }
 
-
+/* Logo Icon */
 #site-name::before {
-    content: url('/ticket.svg'); /* Path to your logo/icon */
-    width: 50px; /* Adjust icon size */
-    height: 50px; /* Adjust icon size */
-    margin-right: 10px; /* Space between icon and text */
+    content: url('/ticket.svg');
+    width: 50px; 
+    height: 50px;
+    margin-right: 10px; 
 }
 
 .ticket {
@@ -109,4 +110,9 @@ object-fit: cover;
 
 .ticket-title {
     color:#5e9bf1;
+}
+
+footer {
+    margin-top: 30px;
+    background-color: #462698;
 }

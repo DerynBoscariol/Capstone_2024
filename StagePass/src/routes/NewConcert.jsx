@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../UserContext'; // Import the useUser hook to get the current user
+import { useUser } from '../UserContext';
 
 const NewConcert = () => {
     const [artist, setArtist] = useState('');
-    const [venue, setVenue] = useState('');
+    const [venue, setVenue] = useState(''); // Store venue by its _id
     const [venues, setVenues] = useState([]); // State for existing venues
     const [showModal, setShowModal] = useState(false); // State for modal visibility
     const [newVenue, setNewVenue] = useState(''); // State for the new venue input
@@ -43,22 +43,20 @@ const NewConcert = () => {
     const handleCreateConcert = async (e) => {
         e.preventDefault();
     
-        // Ensure the user is logged in before submitting
-            if (!user) {
-                setError('You must be logged in to create a concert');
-                return;
-            }
-        
-            // Simple form validation
-            if (!artist || !venue || !tour || !date || !time || !description || !genre || !rules || !ticketType || !ticketPrice || !numAvail || !photo) {
-                setError('Please fill out all fields');
-                return;
-            }
-        
-            if (parseInt(numAvail) <= 0) {
-                setError('Number of Tickets Available must be greater than zero.');
-                return;
-            }
+        if (!user) {
+            setError('You must be logged in to create a concert');
+            return;
+        }
+    
+        if (!artist || !venue || !tour || !date || !time || !description || !genre || !rules || !ticketType || !ticketPrice || !numAvail || !photo) {
+            setError('Please fill out all fields');
+            return;
+        }
+    
+        if (parseInt(numAvail) <= 0) {
+            setError('Number of Tickets Available must be greater than zero.');
+            return;
+        }
     
         const token = localStorage.getItem('token');
         if (!token) {
@@ -66,36 +64,40 @@ const NewConcert = () => {
             return;
         }
     
-        // Create FormData to handle file upload
         const formData = new FormData();
         formData.append('artist', artist);
-        formData.append('venue', venue);
+        formData.append('venueId', venue); // Changed to venueId
         formData.append('tour', tour);
         formData.append('date', date);
         formData.append('time', time);
         formData.append('description', description);
         formData.append('genre', genre);
-        formData.append('address', newAddress); // Include the new address here
+        formData.append('address', newAddress); // Assuming newAddress is for new venue creation
         formData.append('rules', rules);
-        formData.append('photo', photo); // Append the file
+        formData.append('photo', photo); // Ensure photo is set as a file input
         formData.append('tickets[type]', ticketType);
-        formData.append('tickets[price]', parseFloat(ticketPrice));
-        formData.append('tickets[numAvail]', parseInt(numAvail));
-        
+        formData.append('tickets[price]', parseFloat(ticketPrice)); // Parse price
+        formData.append('tickets[numAvail]', parseInt(numAvail)); // Parse numAvail
+    
+        // Log formData for debugging
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+    
         try {
             const response = await fetch('http://localhost:3000/api/NewConcert', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
-                body: formData, // Send the FormData directly
+                body: formData,
             });
     
             const data = await response.json();
     
             if (response.ok) {
                 console.log('Concert created:', data);
-                navigate('/'); // Redirect to the homepage or a different page
+                navigate('/');
             } else {
                 setError(data.message || 'Failed to create concert');
             }
@@ -105,12 +107,9 @@ const NewConcert = () => {
         }
     };
     
+    
 
     const handleAddVenue = async () => {
-        console.log('New Venue:', newVenue);
-        console.log('Venue Address:', newAddress);
-
-        // Check if the new venue name is not empty
         if (!newVenue || !newAddress) {
             setError('Please provide a venue name and address.');
             return;
@@ -137,18 +136,18 @@ const NewConcert = () => {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Error response text:', errorText);
+                console.log(errorText)
                 throw new Error('Failed to add venue');
             }
 
             const data = await response.json();
-            setShowModal(false); // Close modal if successful
+            setShowModal(false); 
             setVenues((prevVenues) => [...prevVenues, data.newVenue]); // Update venues list
-            setNewVenue(''); // Reset the new venue state
-            setNewAddress(''); // Reset the new address state
+            setNewVenue(''); 
+            setNewAddress('');
         } catch (err) {
-            console.error('Error adding venue:', err);
             setError('Something went wrong. Please try again.');
+            console.log(err);
         }
     };
 
@@ -177,13 +176,13 @@ const NewConcert = () => {
                             <select
                                 id="venue"
                                 className="form-select"
-                                value={venue}
+                                value={venue} // Store venue _id here
                                 onChange={(e) => setVenue(e.target.value)}
                                 required
                             >
                                 <option value="">Select Venue</option>
                                 {venues.map((v) => (
-                                    <option key={v._id} value={v.name}>
+                                    <option key={v._id} value={v._id}>
                                         {v.name}
                                     </option>
                                 ))}
@@ -309,7 +308,7 @@ const NewConcert = () => {
                             <label htmlFor="photo" className="form-label">Upload a Promo Image</label>
                             <input
                                 type="file"
-                                accept='.png, .jpg, .jpeg'
+                                accept="image/*"
                                 id="photo"
                                 className="form-control"
                                 onChange={(e) => setImage(e.target.files[0])}

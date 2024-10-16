@@ -105,7 +105,6 @@ export default function ConcertDetails({ userToken }) {
                         <p className="card-text"><strong>Description:</strong> {concert.description}</p>
                         <p className="card-text"><strong>Address:</strong> {concert.venue.address}</p> {/* Updated line */}
                         <p className="card-text"><strong>Rules:</strong> {concert.rules}</p>
-                        <p className="card-text"><strong>Organizer:</strong> {concert.organizer}</p>
                     </div>
                 </div>
             </div>
@@ -115,8 +114,9 @@ export default function ConcertDetails({ userToken }) {
                 <div className="card-body">
                     <p className="card-text"><strong>Ticket Type:</strong> {concert.tickets.type}</p>
                     <p className="card-text"><strong>Price:</strong> ${parseFloat(concert.tickets.price).toFixed(2)}</p>
+                    <p className="card-text"> Reserve your tickets online and pay at the door before the show.</p>
                     <div className="text-center">
-                        <button className="btn btn-primary" onClick={() => setShowModal(true)}>Get Tickets</button>
+                        <button className="btn btn-primary" onClick={() => setShowModal(true)}>Reserve Tickets</button>
                     </div>
                 </div>
             </div>
@@ -135,7 +135,7 @@ export default function ConcertDetails({ userToken }) {
                             <h5 className="modal-title" id="ticketModalLabel">Buy Tickets</h5>
                         </div>
                         <div className="modal-body">
-                            <p>Would you like to buy tickets for {concert.artist} at {concert.venue.name}?</p> {/* Updated line */}
+                            <p>Would you like to reserve tickets for {concert.artist} at {concert.venue.name}?</p> {/* Updated line */}
                             <p><strong>Price per ticket:</strong> ${parseFloat(concert.tickets.price).toFixed(2)}</p>
                             
                             {/* Ticket Quantity Selection */}

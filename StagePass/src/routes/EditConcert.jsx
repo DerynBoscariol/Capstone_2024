@@ -21,12 +21,27 @@ const EditConcert = () => {
                 const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`);
                 if (!response.ok) throw new Error('Failed to fetch concert details');
                 const data = await response.json();
-                setConcertDetails(data); // Set the concert details
+                setConcertDetails({
+                    ...data,
+                    originalArtist: data.artist,
+                    originalVenue: data.venue,
+                    originalTour: data.tour,
+                    originalDate: data.date,
+                    originalTime: data.time,
+                    originalDescription: data.description,
+                    originalGenre: data.genre,
+                    originalRules: data.rules,
+                    originalTickets: {
+                        type: data.tickets.type,
+                        price: data.tickets.price,
+                        numAvail: data.tickets.numAvail,
+                    }
+                });
             } catch (error) {
                 console.error('Error fetching concert details:', error);
                 setError('Failed to load concert details');
             }
-        };
+        };  
 
         const fetchVenues = async () => {
             try {
@@ -46,28 +61,43 @@ const EditConcert = () => {
 
     const handleEditConcert = async (e) => {
         e.preventDefault();
-    
+        
         if (!user) {
             setError('You must be logged in to edit a concert');
             return;
         }
-    
-        // Log current concert details for debugging
-        console.log('Current concertDetails:', concertDetails);
-    
-        const { artist, venue, tour, date, time, description, genre, rules, tickets } = concertDetails;
         
-        // Check that all required fields are filled
-        if (!artist || !venue || !tour || !date || !time || !description || !genre || !rules || !tickets.type || !tickets.price || !tickets.numAvail) {
-            setError('Please fill out all fields');
-            return;
+        const { artist, venue, tour, date, time, description, genre, rules, tickets } = concertDetails;
+    
+        const changes = new FormData(); // Use FormData for form submission
+    
+        if (artist !== concertDetails.originalArtist) changes.append('artist', artist);
+    
+        if (venue && venue._id && concertDetails.originalVenue && concertDetails.originalVenue._id && venue._id !== concertDetails.originalVenue._id) {
+            changes.append('venue', venue._id); // Assuming you also send the ID
         }
     
-        const ticketPrice = parseFloat(tickets.price);
-        const numAvail = parseInt(tickets.numAvail);
+        if (tour !== concertDetails.originalTour) changes.append('tour', tour);
+        if (date !== concertDetails.originalDate) changes.append('date', date);
+        if (time !== concertDetails.originalTime) changes.append('time', time);
+        if (description !== concertDetails.originalDescription) changes.append('description', description);
+        if (genre !== concertDetails.originalGenre) changes.append('genre', genre);
+        if (rules !== concertDetails.originalRules) changes.append('rules', rules);
+        
+        if (tickets && concertDetails.originalTickets) {
+            if (tickets.type !== concertDetails.originalTickets.type) changes.append('tickets.type', tickets.type);
+            if (tickets.price !== concertDetails.originalTickets.price) changes.append('tickets.price', String(tickets.price)); 
+            if (tickets.numAvail !== concertDetails.originalTickets.numAvail) changes.append('tickets.numAvail', String(tickets.numAvail)); 
+        }
     
-        if (isNaN(ticketPrice) || isNaN(numAvail)) {
-            setError('Please provide valid ticket details.');
+        // Append the photo if it was changed
+        if (concertDetails.photo instanceof File) {
+            changes.append('photo', concertDetails.photo);
+        }
+    
+        // Check if there are changes
+        if (changes.entries().next().done) {
+            setError('No changes to update.');
             return;
         }
     
@@ -81,25 +111,9 @@ const EditConcert = () => {
             const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    artist,
-                    venue,
-                    tour,
-                    date,
-                    time,
-                    description,
-                    genre,
-                    rules,
-                    organizer: user.username,
-                    tickets: {
-                        type: tickets.type,
-                        price: ticketPrice,
-                        numAvail: numAvail,
-                    },
-                }),
+                body: changes,
             });
     
             const data = await response.json();
@@ -115,6 +129,9 @@ const EditConcert = () => {
             setError('Something went wrong. Please try again.');
         }
     };
+    
+
+    
     
 
     const handleAddVenue = async () => {
@@ -180,21 +197,23 @@ const EditConcert = () => {
                         />
                     </div>
                     <div className="col-md-6">
-                        <label htmlFor="venue" className="form-label">Venue</label>
-                        <select
-                            id="venue"
-                            className="form-select"
-                            value={concertDetails.venue}
-                            onChange={(e) => setConcertDetails({ ...concertDetails, venue: e.target.value })}
-                            required
-                        >
-                            <option value="">Select Venue</option>
-                            {venues.map((v) => (
-                                <option key={v._id} value={v.name}>
-                                    {v.name}
-                                </option>
-                            ))}
-                        </select>
+                    <label htmlFor="venue" className="form-label">Venue</label>
+                    <select
+                        id="venue"
+                        className="form-select"
+                        value={concertDetails.venue ? concertDetails.venue._id : ''} // Ensure it uses the venue ID
+                        onChange={(e) => {
+                            const selectedVenue = venues.find(v => v._id === e.target.value);
+                            setConcertDetails({ ...concertDetails, venue: selectedVenue });
+                        }}
+                        required
+                    >
+                        {venues.map((v) => (
+                            <option key={v._id} value={v._id}>
+                                {v.name}
+                            </option>
+                        ))}
+                    </select>
                         <button type="button" className="btn btn-link" onClick={() => setShowModal(true)}>
                             + Add New Venue
                         </button>
@@ -307,7 +326,7 @@ const EditConcert = () => {
                         />
                     </div>
                     <div className="col-md-6">
-                        <label htmlFor="photo" className="form-label">Change a promo image</label>
+                        <label htmlFor="photo" className="form-label">Change promo image</label>
                         <input
                             type="file"
                             accept='.png, .jpg, .jpeg'
