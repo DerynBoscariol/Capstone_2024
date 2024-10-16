@@ -169,5 +169,5 @@ export default function ConcertDetails({ userToken }) {
 
 // Adding prop types for better documentation and validation
 ConcertDetails.propTypes = {
-    userToken: PropTypes.string, // Optional userToken prop
+    userToken: PropTypes.string, 
 };

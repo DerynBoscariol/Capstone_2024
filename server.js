@@ -299,11 +299,6 @@ app.get('/api/FutureConcerts', async (req, res) => {
     }
 });
 
-
-
-
-
-
 // Returns all genres
 app.get('/api/Genres', async (req, res) => {
     try {
@@ -372,7 +367,9 @@ app.get('/api/concertsByVenue/:venueId', async (req, res) => {
 app.get('/api/ConcertDetails/:id', async (req, res) => {
     try {
         const concertId = req.params.id;
-        
+        if (!ObjectId.isValid(concertId)) {
+            return res.status(400).json({ message: 'Invalid concert ID' });
+        }
         // Fetch the concert details from the concerts collection
         const concert = await db.collection("concerts").findOne({ _id: new ObjectId(concertId) });
 
@@ -382,7 +379,7 @@ app.get('/api/ConcertDetails/:id', async (req, res) => {
         }
 
         // Fetch the corresponding venue details based on the concert's venue name
-        const venue = await db.collection("venues").findOne({ name: concert.venue });
+        const venue = await db.collection("venues").findOne({ _id: concert.venueId });
 
         if (!venue) {
             console.log("Venue not found for concert:", concert.venueId);

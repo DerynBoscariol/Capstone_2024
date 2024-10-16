@@ -72,20 +72,23 @@ export default function YourTickets({ userToken }) {
                 <div className="row">
                     {tickets.map((ticket) => {
                         const concert = ticket.concert || {};
+                        const venue = concert.venue || {}; // Access the venue details
+
                         // Calculate the total price owed for this ticket
                         const totalPrice = concert.tickets.price * ticket.quantity;
-    
+
                         return (
                             <div className="col-md-4 mb-4" key={ticket.reservationNumber}>
                                 <div className="ticket card shadow">
                                     <div className="ticket-body card-body">
                                         <h5 className="ticket-title card-title fw-bold" style={{ color: '#007bff' }}>
-                                            {concert.artist} at {concert.venue}
+                                            {concert.artist} at {venue.name}
                                         </h5>
                                         <ul className="list-unstyled">
                                             <li><strong>Reservation Number:</strong> <span className="text-muted">{ticket.reservationNumber}</span></li>
                                             <li><strong>Date:</strong> <span className="text-muted">{formatDate(concert.date)}</span></li>
                                             <li><strong>Time:</strong> <span className="text-muted">{formatTime(concert.time)}</span></li>
+                                            <li><strong>Venue Address:</strong> <span className="text-muted">{venue.address}</span></li> {/* Display venue address */}
                                             <li><strong>Ticket Type:</strong> <span className="text-muted">{ticket.ticketType}</span></li>
                                             <li><strong>Price Per Ticket:</strong> <span className="text-muted">${parseFloat(concert.tickets.price).toFixed(2)}</span></li>
                                             <li><strong>Quantity:</strong> <span className="text-muted">{ticket.quantity}</span></li>
@@ -113,7 +116,6 @@ export default function YourTickets({ userToken }) {
             )}
         </div>
     );
-    
 }
 
 // Adding prop types validation for userToken
