@@ -1,4 +1,4 @@
-import '/css/styles.css?url';
+import '../../public/css/styles.css';
 
 function SiteName() {
 return (

@@ -1,7 +1,7 @@
 import SiteName from "./SiteName";
 import { useUser } from "../UserContext"; // Import the useUser hook
 import { Link } from 'react-router-dom'; 
-import '/css/styles.css?url';
+import '../../public/css/styles.css';
 
 function Header() {
     const { user, handleLogout } = useUser(); // Access user info and handleLogout from UserContext

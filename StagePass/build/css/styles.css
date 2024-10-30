@@ -1,0 +1,119 @@
+:root {
+    padding: 0;
+    margin: 0;
+}
+
+.btn-primary {
+    background-color: #5e9bf1 !important;
+    border-color: none !important;
+}
+
+.text-primary {
+    color: #5e9bf1 !important;
+}
+
+.concert-thumb {
+    height: 30vh;
+    width: auto;
+    object-fit: cover;
+}
+
+.details-img {
+height: 70vh;
+width: auto;
+max-width: 30vw;
+object-fit: cover;
+}
+
+/* HEADER */
+.header-container {
+    background-color: #462698; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+}
+
+#tag-line {
+    font-size: 1.2rem; 
+    font-weight: 300; 
+    color: #EEE5E9;
+}
+
+.btn-primary {
+    border-radius: 20px; 
+    transition: background-color 0.3s, transform 0.3s; 
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #3a73c4 !important; 
+    transform: translateY(-2px); 
+}
+
+.btn-secondary {
+    border-radius: 20px;
+    transition: background-color 0.3s, transform 0.3s;
+    background-color: #ffffff;
+    color: #462698;
+}
+
+.btn-secondary:hover {
+    background-color: #5c4771; 
+    transform: translateY(-2px);
+    color: #ffffff;
+}
+
+/* Dropdown menu styling */
+.dropdown-menu {
+    border-radius: 0.5rem; 
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); 
+}
+
+.dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+/* Site Name */
+#site-name {
+    font-family: 'Arial', sans-serif; 
+    font-weight: bold; 
+    font-size: 2rem;
+    letter-spacing: 1px; 
+    color: #EEE5E9; 
+    text-transform: uppercase; 
+    margin: 0; 
+    align-items: center; 
+    transition: color 0.3s; 
+}
+
+#site-name a {
+    text-decoration: none;
+    color: inherit;
+}
+
+#site-name:hover {
+    color: #3a73c4; 
+}
+
+/* Logo Icon */
+#site-name::before {
+    content: url('/ticket.svg');
+    width: 50px; 
+    height: 50px;
+    margin-right: 10px; 
+}
+
+.ticket {
+    border: 2px dashed black;
+}
+
+.ticket-body {
+    background-color: #f8f5e1;
+}
+
+.ticket-title {
+    color:#5e9bf1;
+}
+
+footer {
+    margin-top: 30px;
+    background-color: #462698;
+}
