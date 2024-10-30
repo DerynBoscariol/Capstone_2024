@@ -1,4 +1,4 @@
-# 🎶 ✨ Stage Pass 🎤 🎟️
+# 🎶 🎸 Stage Pass 🎤 🎟️
 ---
 Created by Deryn Boscariol  
 To view the deployed site, visit [Live Demo](https://capstone-2024-32sn.onrender.com/).
