@@ -563,8 +563,11 @@ app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
     }
 
     try {
-        // Fetch concerts with venue details
+        // Fetch concerts created by the authenticated user with venue details
         const concerts = await db.collection('concerts').aggregate([
+            {
+                $match: { organizer: organizerUsername } // Filter concerts by the authenticated user's username
+            },
             {
                 $lookup: {
                     from: 'venues', // venues collection
@@ -587,6 +590,7 @@ app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
         return res.status(500).json({ message: 'Failed to fetch concerts' });
     }
 });
+
 
 
 // Reserve tickets for a concert
