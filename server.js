@@ -745,6 +745,21 @@ app.delete('/api/reserveTickets/:id', authenticateToken, async (req, res) => {
 });
 
 
+// Functions to Serve
+
+// Serve static files from React app
+app.use(express.static(path.join(__dirname, 'StagePass', 'build')));
+
+// Route to serve the React app on the root URL
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'StagePass', 'build', 'index.html'));
+});
+
+// For any other route, serve the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'StagePass', 'build', 'index.html'));
+});
+
 // Set up server listening
 app.listen(port, () => {
     console.log(`Listening on http://localhost:${port}`);
