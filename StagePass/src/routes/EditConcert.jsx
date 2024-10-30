@@ -1,20 +1,33 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useUser } from '../UserContext'; // Import the useUser hook to get the current user
-import { formatDateForInput } from '../utils';
+import { useUser } from '../UserContext'; 
 
 const EditConcert = () => {
-    const { id } = useParams(); // Get concert ID from URL parameters
-    const [concertDetails, setConcertDetails] = useState(null);
-    const [venues, setVenues] = useState([]); // State for existing venues
-    const [showModal, setShowModal] = useState(false); // State for modal visibility
-    const [newVenue, setNewVenue] = useState(''); // State for the new venue input
-    const [newAddress, setNewAddress] = useState(''); // State for the new venue address
+    const token = localStorage.getItem('token');
+    const { id } = useParams();
+    const [venues, setVenues] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [newVenue, setNewVenue] = useState('');
+    const [newAddress, setNewAddress] = useState('');
+    const [concertDetails, setConcertDetails] = useState({
+        artist: '',
+        venueId: '',
+        tour: '',
+        date: '',
+        time: '',
+        description: '',
+        genre: '',
+        rules: '',
+        tickets: {
+            type: '',
+            price: '',
+            numAvail: '',
+        },
+    });
     const [error, setError] = useState('');
-
-    const { user } = useUser(); // Access the user from UserContext
+    const { user } = useUser();
     const navigate = useNavigate();
-
+    
     useEffect(() => {
         const fetchConcertDetails = async () => {
             try {
@@ -24,7 +37,7 @@ const EditConcert = () => {
                 setConcertDetails({
                     ...data,
                     originalArtist: data.artist,
-                    originalVenue: data.venue,
+                    originalVenue: data.venueId,
                     originalTour: data.tour,
                     originalDate: data.date,
                     originalTime: data.time,
@@ -41,14 +54,14 @@ const EditConcert = () => {
                 console.error('Error fetching concert details:', error);
                 setError('Failed to load concert details');
             }
-        };  
+        };
 
         const fetchVenues = async () => {
             try {
                 const response = await fetch('http://localhost:3000/api/Venues');
                 if (!response.ok) throw new Error('Failed to fetch venues');
                 const data = await response.json();
-                setVenues(data); // Set existing venues
+                setVenues(data);
             } catch (error) {
                 console.error('Error fetching venues:', error);
                 setError('Failed to load venues');
@@ -63,79 +76,48 @@ const EditConcert = () => {
         e.preventDefault();
         
         if (!user) {
-            setError('You must be logged in to edit a concert');
+            setError('You must be logged in to create a concert');
             return;
         }
+
+        const changes = new FormData();
+        changes.append('artist', concertDetails.artist);
+        changes.append('venueId', concertDetails.venueId);
+        changes.append('tour', concertDetails.tour);
+        changes.append('date', concertDetails.date);
+        changes.append('time', concertDetails.time);
+        changes.append('description', concertDetails.description);
+        changes.append('genre', concertDetails.genre);
+        changes.append('rules', concertDetails.rules);
+        changes.append('tickets.type', concertDetails.tickets.type);
+        changes.append('tickets.price', concertDetails.tickets.price);
+        changes.append('tickets.numAvail', concertDetails.tickets.numAvail);
         
-        const { artist, venue, tour, date, time, description, genre, rules, tickets } = concertDetails;
-    
-        const changes = new FormData(); // Use FormData for form submission
-    
-        if (artist !== concertDetails.originalArtist) changes.append('artist', artist);
-    
-        if (venue && venue._id && concertDetails.originalVenue && concertDetails.originalVenue._id && venue._id !== concertDetails.originalVenue._id) {
-            changes.append('venue', venue._id); // Assuming you also send the ID
-        }
-    
-        if (tour !== concertDetails.originalTour) changes.append('tour', tour);
-        if (date !== concertDetails.originalDate) changes.append('date', date);
-        if (time !== concertDetails.originalTime) changes.append('time', time);
-        if (description !== concertDetails.originalDescription) changes.append('description', description);
-        if (genre !== concertDetails.originalGenre) changes.append('genre', genre);
-        if (rules !== concertDetails.originalRules) changes.append('rules', rules);
-        
-        if (tickets && concertDetails.originalTickets) {
-            if (tickets.type !== concertDetails.originalTickets.type) changes.append('tickets.type', tickets.type);
-            if (tickets.price !== concertDetails.originalTickets.price) changes.append('tickets.price', String(tickets.price)); 
-            if (tickets.numAvail !== concertDetails.originalTickets.numAvail) changes.append('tickets.numAvail', String(tickets.numAvail)); 
-        }
-    
-        // Append the photo if it was changed
-        if (concertDetails.photo instanceof File) {
+        if (concertDetails.photo) {
             changes.append('photo', concertDetails.photo);
         }
-    
-        // Check if there are changes
-        if (changes.entries().next().done) {
-            setError('No changes to update.');
-            return;
-        }
-    
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setError('No token found. Please log in.');
-            return;
-        }
-    
+        
         try {
             const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${token}`, 
                 },
-                body: changes,
+                body: changes, 
             });
-    
             const data = await response.json();
-    
             if (response.ok) {
-                console.log('Concert edited:', data);
-                navigate('/'); // Redirect after successful edit
+                navigate(`/ConcertDetails/${id}`);
             } else {
-                setError(data.message || 'Failed to edit concert');
+                setError(data.message || 'Failed to update concert');
             }
         } catch (err) {
-            console.error('Error editing concert:', err);
+            console.error('Error updating concert:', err);
             setError('Something went wrong. Please try again.');
         }
     };
-    
-
-    
-    
 
     const handleAddVenue = async () => {
-        // Check if the new venue name is not empty
         if (!newVenue || !newAddress) {
             setError('Please provide a venue name and address.');
             return;
@@ -162,18 +144,18 @@ const EditConcert = () => {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Error response text:', errorText);
+                console.log(errorText);
                 throw new Error('Failed to add venue');
             }
 
             const data = await response.json();
-            setShowModal(false); // Close modal if successful
-            setVenues((prevVenues) => [...prevVenues, data.newVenue]); // Update venues list
-            setNewVenue(''); // Reset the new venue state
-            setNewAddress(''); // Reset the new address state
+            setShowModal(false);
+            setVenues((prevVenues) => [...prevVenues, data.newVenue]);
+            setNewVenue('');
+            setNewAddress('');
         } catch (err) {
-            console.error('Error adding venue:', err);
             setError('Something went wrong. Please try again.');
+            console.log(err);
         }
     };
 
@@ -201,10 +183,13 @@ const EditConcert = () => {
                     <select
                         id="venue"
                         className="form-select"
-                        value={concertDetails.venue ? concertDetails.venue._id : ''} // Ensure it uses the venue ID
+                        value={concertDetails.venueId} 
                         onChange={(e) => {
-                            const selectedVenue = venues.find(v => v._id === e.target.value);
-                            setConcertDetails({ ...concertDetails, venue: selectedVenue });
+                            const selectedVenueId = e.target.value;
+                            setConcertDetails({ 
+                                ...concertDetails, 
+                                venueId: selectedVenueId, // Always update venueId
+                            });
                         }}
                         required
                     >
@@ -236,7 +221,7 @@ const EditConcert = () => {
                                         placeholder="New Venue Name"
                                         value={newVenue}
                                         onChange={(e) => setNewVenue(e.target.value)}
-                                        required
+                                       // required
                                     />
                                     <input
                                         type="text"
@@ -244,7 +229,7 @@ const EditConcert = () => {
                                         placeholder="New Venue Address"
                                         value={newAddress}
                                         onChange={(e) => setNewAddress(e.target.value)}
-                                        required
+                                       // required
                                     />
                                 </div>
                                 <div className="modal-footer">
@@ -287,7 +272,7 @@ const EditConcert = () => {
                             type="date"
                             id="date"
                             className="form-control"
-                            value={formatDateForInput(concertDetails.date)}
+                            value={concertDetails.date}
                             onChange={(e) => setConcertDetails({ ...concertDetails, date: e.target.value })}
                             required
                         />
@@ -325,6 +310,7 @@ const EditConcert = () => {
                             required
                         />
                     </div>
+                    
                     <div className="col-md-6">
                         <label htmlFor="photo" className="form-label">Change promo image</label>
                         <input
@@ -333,9 +319,9 @@ const EditConcert = () => {
                             id="photo"
                             className="form-control"
                             onChange={(e) => setConcertDetails({ ...concertDetails, photo: e.target.files[0]})} 
-                            required
+                            //required
                         />
-                    </div>
+                    </div> 
                 </div>
                 <div className="row mb-3">
                 <div className="col-md-4">

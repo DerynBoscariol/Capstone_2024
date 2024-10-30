@@ -21,6 +21,7 @@
 .details-img {
 height: 70vh;
 width: auto;
+max-width: 30vw;
 object-fit: cover;
 }
 

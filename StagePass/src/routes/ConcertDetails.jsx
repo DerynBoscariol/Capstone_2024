@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate} from 'react-router-dom';
 import PropTypes from 'prop-types'; 
 import { formatDate, formatTime } from '../utils';
 
 export default function ConcertDetails({ userToken }) {
     const { id } = useParams();
+    const navigate = useNavigate(); 
     const [concert, setConcert] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -51,7 +52,7 @@ export default function ConcertDetails({ userToken }) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`, // Use the userToken
+                    'Authorization': `Bearer ${userToken}`, 
                 },
                 body: JSON.stringify({
                     concertId: concert._id,
@@ -75,7 +76,17 @@ export default function ConcertDetails({ userToken }) {
     };
 
     const handleBuyTickets = () => {
+        if (!userToken) {
+            setReservationMessage('You must be logged in to reserve tickets.');
+            return; // Stop execution if not logged in
+        }
         reserveTickets(); // Call the reserveTickets function to process the reservation
+    };
+
+    const handleLoginRedirect = () => {
+        // Redirect to login page (you may need to adjust this route)
+        navigate('/login');
+        return;
     };
 
     if (loading) return <p>Loading concert details...</p>;
@@ -103,7 +114,7 @@ export default function ConcertDetails({ userToken }) {
                         <p className="card-text"><strong>Date:</strong> {formatDate(concert.date)}</p>
                         <p className="card-text"><strong>Time:</strong> {formatTime(concert.time)}</p>
                         <p className="card-text"><strong>Description:</strong> {concert.description}</p>
-                        <p className="card-text"><strong>Address:</strong> {concert.venue.address}</p> {/* Updated line */}
+                        <p className="card-text"><strong>Address:</strong> {concert.venue.address}</p>
                         <p className="card-text"><strong>Rules:</strong> {concert.rules}</p>
                     </div>
                 </div>
@@ -116,7 +127,12 @@ export default function ConcertDetails({ userToken }) {
                     <p className="card-text"><strong>Price:</strong> ${parseFloat(concert.tickets.price).toFixed(2)}</p>
                     <p className="card-text"> Reserve your tickets online and pay at the door before the show.</p>
                     <div className="text-center">
-                        <button className="btn btn-primary" onClick={() => setShowModal(true)}>Reserve Tickets</button>
+                        <button 
+                            className="btn btn-primary" 
+                            onClick={userToken ? () => setShowModal(true) : handleLoginRedirect} 
+                        >
+                            {userToken ? 'Reserve Tickets' : 'Login to Reserve Tickets'}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -132,10 +148,10 @@ export default function ConcertDetails({ userToken }) {
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title" id="ticketModalLabel">Buy Tickets</h5>
+                            <h5 className="modal-title" id="ticketModalLabel">Reserve Tickets</h5>
                         </div>
                         <div className="modal-body">
-                            <p>Would you like to reserve tickets for {concert.artist} at {concert.venue.name}?</p> {/* Updated line */}
+                            <p>Would you like to reserve tickets for {concert.artist} at {concert.venue.name}?</p>
                             <p><strong>Price per ticket:</strong> ${parseFloat(concert.tickets.price).toFixed(2)}</p>
                             
                             {/* Ticket Quantity Selection */}
@@ -145,7 +161,7 @@ export default function ConcertDetails({ userToken }) {
                                     onClick={() => setTicketQuantity(prev => Math.max(1, prev - 1))}>
                                     -
                                 </button>
-                                <span className="mx-3">{ticketQuantity}</span> {/* Display current quantity */}
+                                <span className="mx-3">{ticketQuantity}</span>
                                 <button 
                                     className="btn btn-secondary"
                                     onClick={() => setTicketQuantity(prev => prev + 1)}>

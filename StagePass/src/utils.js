@@ -16,7 +16,15 @@ export const formatTime = (timeString) => {
 };
 
 // Format date for input field
-export const formatDateForInput = (dateString) => {
-    const date = new Date(dateString); 
-    return date.toISOString().split('T')[0]; // Returns the date in YYYY-MM-DD format
+export const formatDateForInput = (isoDateString) => {
+    if (!isoDateString) return ''; 
+    const date = new Date(isoDateString);
+    return date.toISOString().split('T')[0]; 
 };
+
+
+/*export const formatDateForInput = (dateString) => {
+    const date = new Date(dateString); 
+    console.log('Date value:', date);
+    return date.toISOString().split('T')[0]; // Returns the date in YYYY-MM-DD format
+}; */

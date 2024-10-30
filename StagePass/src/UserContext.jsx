@@ -49,3 +49,5 @@ UserProvider.propTypes = {
 export const useUser = () => {
     return useContext(UserContext);
 };
+
+export {UserContext};

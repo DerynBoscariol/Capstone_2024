@@ -19,7 +19,7 @@ export default function Home() {
                 const genreParam = selectedGenre ? `genre=${encodeURIComponent(selectedGenre)}` : '';
                 const venueParam = selectedVenue ? `venue=${encodeURIComponent(selectedVenue)}` : '';
     
-                // Combine the query parameters intelligently
+                // Combine the query parameters
                 let queryParams = '';
                 if (genreParam && venueParam) {
                     queryParams = `?${genreParam}&${venueParam}`;
@@ -114,10 +114,11 @@ export default function Home() {
 
     // Filter concerts based on selected genre
     const filteredConcerts = enrichedConcerts.filter(concert => {
-        const venueMatch = selectedVenue ? concert.venue === selectedVenue : true;
+        const venueMatch = selectedVenue ? concert.venueDetails?.name === selectedVenue : true;
         const genreMatch = selectedGenre ? concert.genre === selectedGenre : true;
         return venueMatch && genreMatch;
     });
+    
 
     return (
         <main id="main" className="container mt-5">
@@ -130,11 +131,11 @@ export default function Home() {
                         id="venueSelect"
                         className="form-select"
                         value={selectedVenue}
-                        onChange={(e) => setSelectedVenue(e.target.value)} // Use venue name instead of _id
+                        onChange={(e) => setSelectedVenue(e.target.value)} 
                     >
                         <option value="">All Venues</option>
                         {venues.map(venue => (
-                            <option key={venue._id} value={venue.name}>{venue.name}</option> // Use venue.name
+                            <option key={venue._id} value={venue.name}>{venue.name}</option> 
                         ))}
                     </select>
                 </div>

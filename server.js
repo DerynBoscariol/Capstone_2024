@@ -90,12 +90,12 @@ const authenticateToken = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1]; // Ensure this is correct
 
     // Log the received token for debugging 
-    // console.log('Received token:', token); 
+    console.log('Received token:', token); 
 
     // Check if token is provided
     if (!token) {
-        console.log('No token provided'); // Log absence of token
-        return res.status(401).json({ message: 'Unauthorized' }); // Respond with unauthorized status
+        console.log('No token provided'); 
+        return res.status(401).json({ message: 'Unauthorized' }); 
     }
 
     // Verify the token
@@ -106,7 +106,7 @@ const authenticateToken = (req, res, next) => {
         }
 
         req.user = user; // Attach user information to the request
-        next(); // Proceed to the next middleware or route handler
+        next(); 
     });
 };
 
@@ -488,42 +488,70 @@ app.delete('/api/concertDetails/:id', async (req, res) => {
 app.put('/api/ConcertDetails/:id', authenticateToken, upload.single('photo'), async (req, res) => {
     const concertId = req.params.id;
     const organizerUsername = req.user.username;
-    const updateFields = { ...req.body }; // Use spread operator to avoid directly mutating req.body
 
-    // Photo handling
+    // Build update fields
+    const updateFields = {
+        artist: req.body.artist,
+        venueId: new ObjectId(req.body.venueId),
+        tour: req.body.tour,
+        date: new Date(`${req.body.date}T${req.body.time}`), // ISO format
+        time: req.body.time,
+        description: req.body.description,
+        genre: req.body.genre,
+        tickets: {
+            type: req.body['tickets.type'],
+            price: parseFloat(req.body['tickets.price']), // Convert price to a number
+            numAvail: parseInt(req.body['tickets.numAvail'], 10), // Ensure numAvail is an integer
+        },
+    };
+
+    // Handle photo upload path
     const photo = req.file ? req.file.filename : null;
-    const photoPath = photo ? `/imageUploads/${photo}` : null; // Include the static path
-
-    // If an image is uploaded, add its filename to the updateFields
-    if (req.file) {
-        updateFields.photoPath = photoPath; // Store the full image URL
+    if (photo) {
+        updateFields.photoPath = `/imageUploads/${photo}`;
     }
 
-    // Ensure required fields are present 
-   /* if (!updateFields.artist || (!updateFields.venue && !updateFields.address) || !updateFields.tour || !updateFields.date || !updateFields.time || !updateFields.description || !updateFields.genre || !updateFields.tickets || !updateFields.tickets.type || !updateFields.tickets.price || !updateFields.tickets.numAvail) {
-        return res.status(400).json({ message: 'Please provide all required fields.' });
-    } */
+    // Verify that required fields are present
+    const requiredFields = [
+        'artist', 'venueId', 'tour', 'date', 'time', 'description', 'genre',
+        'tickets.type', 'tickets.price', 'tickets.numAvail'
+    ];
+
+    for (const field of requiredFields) {
+        const value = field.includes('.')
+            ? field.split('.').reduce((o, key) => (o || {})[key], updateFields)
+            : updateFields[field];
+        if (value == null || value === '') {
+            return res.status(400).json({ message: `Missing required field: ${field}` });
+        }
+    }
 
     try {
-        // Validate if the concert exists
-        const concert = await db.collection('concerts').findOne({ _id: new ObjectId(concertId), organizer: organizerUsername });
+        // Ensure concertId is an ObjectId
+        const concertObjectId = new ObjectId(concertId);
 
+        // Find the concert and check user authorization
+        const concert = await db.collection('concerts').findOne({ _id: concertObjectId, organizer: organizerUsername });
         if (!concert) {
             return res.status(404).json({ message: 'Concert not found or you are not authorized to update it.' });
         }
 
-        // Update concert details
+        // Update the concert in the database
         await db.collection('concerts').updateOne(
-            { _id: new ObjectId(concertId) },
+            { _id: concertObjectId },
             { $set: updateFields }
         );
 
-        res.status(200).json({ message: 'Concert updated successfully.', concert: updateFields });
+        // Retrieve updated concert details to send to client
+        const updatedConcert = await db.collection('concerts').findOne({ _id: concertObjectId });
+        
+        res.status(200).json({ message: 'Concert updated successfully.', concert: updatedConcert });
     } catch (error) {
-        console.error('Error updating concert:', error.message);
+        console.error('Error updating concert:', error);
         return res.status(500).json({ message: 'Failed to update concert.' });
     }
 });
+
 
 // Your Concerts endpoint - ORGANIZER
 app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
@@ -710,7 +738,6 @@ app.delete('/api/reserveTickets/:id', authenticateToken, async (req, res) => {
         return res.status(500).json({ message: 'Failed to delete reservation.' });
     }
 });
-
 
 
 // Set up server listening
