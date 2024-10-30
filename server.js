@@ -364,7 +364,7 @@ app.get('/api/concertsByVenue/:venueId', async (req, res) => {
 });
 
 // Route to find a concert by ID
-app.get('/api/ConcertDetails/:id', async (req, res) => {
+app.get('/api/ConcertDetails/:id', authenticateToken, async (req, res) => {
     try {
         const concertId = req.params.id;
         if (!ObjectId.isValid(concertId)) {

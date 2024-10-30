@@ -17,10 +17,19 @@ export default function ConcertDetails({ userToken }) {
     useEffect(() => {
         const fetchConcert = async () => {
             try {
-                const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`);
+                const token = localStorage.getItem('token'); 
+                const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`, 
+                    },
+                });
+                
                 if (!response.ok) {
-                    throw new Error("Concert not found");
+                    throw new Error("Concert not found or unauthorized");
                 }
+                
                 const data = await response.json();
                 setConcert(data);
                 setTotalPrice(parseFloat(data.tickets.price)); // Set the initial total price based on ticket price
@@ -30,6 +39,7 @@ export default function ConcertDetails({ userToken }) {
                 setLoading(false);
             }
         };
+        
 
         fetchConcert();
     }, [id]);
