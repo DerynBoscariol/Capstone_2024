@@ -9,7 +9,7 @@
   "dev": "nodemon server.js",
   "install": "npm ci && cd StagePass && npm ci --only=production",
   "build": "cd StagePass && npm run build",
-  "render-build": "npm run install && npm run build"
+  "render-build": "npm install && cd StagePass && npm install --only=production && npm run build"
   },
   "author": "Deryn Boscariol",
   "license": "ISC", 
