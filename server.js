@@ -497,6 +497,7 @@ app.put('/api/ConcertDetails/:id', authenticateToken, upload.single('photo'), as
         date: new Date(`${req.body.date}T${req.body.time}`), // ISO format
         time: req.body.time,
         description: req.body.description,
+        rules: req.body.rules,
         genre: req.body.genre,
         tickets: {
             type: req.body['tickets.type'],
@@ -513,7 +514,7 @@ app.put('/api/ConcertDetails/:id', authenticateToken, upload.single('photo'), as
 
     // Verify that required fields are present
     const requiredFields = [
-        'artist', 'venueId', 'tour', 'date', 'time', 'description', 'genre',
+        'artist', 'venueId', 'tour', 'date', 'time', 'description', 'rules', 'genre',
         'tickets.type', 'tickets.price', 'tickets.numAvail'
     ];
 
