@@ -4,12 +4,12 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js",
-    "install": "npm i && cd StagePass && npm i --only=productione",
-    "build": "cd StagePass && npm run build",
-    "render-build":"npm run install && npm run build"
+  "start": "node server.js",
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "dev": "nodemon server.js",
+  "install": "npm ci && cd StagePass && npm ci --only=production",
+  "build": "cd StagePass && npm run build",
+  "render-build": "npm run install && npm run build"
   },
   "author": "Deryn Boscariol",
   "license": "ISC", 
