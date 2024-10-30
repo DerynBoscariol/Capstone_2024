@@ -5,11 +5,9 @@
   "main": "server.js",
   "scripts": {
   "start": "node server.js",
-  "test": "echo \"Error: no test specified\" && exit 1",
   "dev": "nodemon server.js",
-  "install": "npm install && cd StagePass && npm install",
-  "build": "cd StagePass && npm run build",
-  "postinstall": "cd StagePass && npm run build" 
+  "build": "cd StagePass && npm install && npm run build",
+  "postinstall": "cd StagePass && npm install --only=production"
   },
   "author": "Deryn Boscariol",
   "license": "ISC", 
