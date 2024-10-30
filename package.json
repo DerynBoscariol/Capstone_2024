@@ -7,9 +7,8 @@
   "start": "node server.js",
   "test": "echo \"Error: no test specified\" && exit 1",
   "dev": "nodemon server.js",
-  "install": "npm ci && cd StagePass && npm ci --only=production",
+  "install": "npm install && cd StagePass && npm install",
   "build": "cd StagePass && npm run build",
-  "render-build": "npm install && cd StagePass && npm install --only=production && npm run build",
   "postinstall": "cd StagePass && npm run build" 
   },
   "author": "Deryn Boscariol",
