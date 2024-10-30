@@ -1,5 +1,6 @@
-# :star: :musical_note: Stage Pass :ticket: :star:
-Created by Deryn Boscariol
+# 🎶 ✨ Stage Pass 🎤 🎟️
+---
+Created by Deryn Boscariol  
 To view the deployed site, visit [Live Demo](https://capstone-2024-32sn.onrender.com/).
 
 ## Description
