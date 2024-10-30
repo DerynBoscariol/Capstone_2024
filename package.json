@@ -7,7 +7,7 @@
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
-    "install": "npm i && cd StagePass && npm i --production=false",
+    "install": "npm i && cd StagePass && npm i --only=productione",
     "build": "cd StagePass && npm run build",
     "render-build":"npm run install && npm run build"
   },
