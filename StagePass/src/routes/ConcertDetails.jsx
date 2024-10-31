@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate} from 'react-router-dom';
 import PropTypes from 'prop-types'; 
 import { formatDate, formatTime } from '../utils';
+import { useUser } from '../UserContext';
 
-export default function ConcertDetails({ userToken }) {
+export default function ConcertDetails() {
     const { id } = useParams();
     const navigate = useNavigate(); 
     const [concert, setConcert] = useState(null);
@@ -13,56 +14,44 @@ export default function ConcertDetails({ userToken }) {
     const [ticketQuantity, setTicketQuantity] = useState(1);
     const [totalPrice, setTotalPrice] = useState(0);
     const [reservationMessage, setReservationMessage] = useState('');
+    const { token } = useUser();
 
     useEffect(() => {
         const fetchConcert = async () => {
             try {
-                const token = localStorage.getItem('token'); 
-                const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`, 
-                    },
-                });
-                
+                const response = await fetch(`http://localhost:3000/api/ConcertDetails/${id}`);
                 if (!response.ok) {
                     throw new Error("Concert not found or unauthorized");
                 }
-                
                 const data = await response.json();
                 setConcert(data);
-                setTotalPrice(parseFloat(data.tickets.price)); // Set the initial total price based on ticket price
+                setTotalPrice(parseFloat(data.tickets.price)); 
             } catch (error) {
                 setError(error.message);
             } finally {
                 setLoading(false);
             }
         };
-        
-
         fetchConcert();
     }, [id]);
 
     useEffect(() => {
         if (concert) {
-            // Update the total price whenever the ticket quantity changes
             setTotalPrice(ticketQuantity * parseFloat(concert.tickets.price));
         }
     }, [ticketQuantity, concert]);
 
     const reserveTickets = async () => {
-        if (!userToken) {
+        if (!token) {
             setReservationMessage('You must be logged in to reserve tickets.');
             return;
         }
-
         try {
             const response = await fetch('http://localhost:3000/api/reserveTickets', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`, 
+                    'Authorization': `Bearer ${token}`, 
                 },
                 body: JSON.stringify({
                     concertId: concert._id,
@@ -86,25 +75,23 @@ export default function ConcertDetails({ userToken }) {
     };
 
     const handleBuyTickets = () => {
-        if (!userToken) {
+        if (!token) {
             setReservationMessage('You must be logged in to reserve tickets.');
-            return; // Stop execution if not logged in
+            return;
         }
-        reserveTickets(); // Call the reserveTickets function to process the reservation
+        reserveTickets();
     };
 
     const handleLoginRedirect = () => {
-        // Redirect to login page (you may need to adjust this route)
         navigate('/login');
-        return;
     };
 
     if (loading) return <p>Loading concert details...</p>;
-
-    // Display the error message if any occurs during the fetch request
     if (error) return <p>Error: {error}</p>;
-
     if (!concert) return <p>No concert found.</p>;
+
+    console.log('User Token:', token); 
+    console.log('Is token valid?', !!token); 
 
     return (
         <main id="main" className="container mt-4">
@@ -137,12 +124,21 @@ export default function ConcertDetails({ userToken }) {
                     <p className="card-text"><strong>Price:</strong> ${parseFloat(concert.tickets.price).toFixed(2)}</p>
                     <p className="card-text"> Reserve your tickets online and pay at the door before the show.</p>
                     <div className="text-center">
-                        <button 
-                            className="btn btn-primary" 
-                            onClick={userToken ? () => setShowModal(true) : handleLoginRedirect} 
-                        >
-                            {userToken ? 'Reserve Tickets' : 'Login to Reserve Tickets'}
-                        </button>
+                        {token ? (
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={() => setShowModal(true)} 
+                            >
+                                Reserve Tickets
+                            </button>
+                        ) : (
+                            <button 
+                                className="btn btn-secondary" 
+                                onClick={handleLoginRedirect}
+                            >
+                                Login to Reserve Tickets
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -195,5 +191,5 @@ export default function ConcertDetails({ userToken }) {
 
 // Adding prop types for better documentation and validation
 ConcertDetails.propTypes = {
-    userToken: PropTypes.string, 
+    token: PropTypes.string, 
 };

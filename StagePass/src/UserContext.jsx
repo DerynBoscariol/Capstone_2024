@@ -16,6 +16,11 @@ export const UserProvider = ({ children, navigate }) => {
         }
     });
 
+    const [token, setToken] = useState(() => {
+        // Initialize token from localStorage
+        return localStorage.getItem('token'); 
+    });
+
     const handleLogout = () => {
         setUser(null); // Clear user info
         localStorage.removeItem('token'); // Remove token from localStorage
@@ -31,8 +36,16 @@ export const UserProvider = ({ children, navigate }) => {
         }
     }, [user]);
 
+    useEffect(() => {
+        if (token) {
+            localStorage.setItem('token', token); // Sav token to localStorage
+        } else {
+            localStorage.removeItem('token'); // Remove token if null
+        }
+    }, [token]);
+
     return (
-        <UserContext.Provider value={{ user, setUser, handleLogout }}>
+        <UserContext.Provider value={{ user, token, setUser, setToken, handleLogout }}>
             {children}
         </UserContext.Provider>
     );

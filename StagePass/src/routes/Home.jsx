@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { formatDate, formatTime } from '../utils';
 import '../../public/css/styles.css';
+import { useUser } from "../UserContext";
 
 export default function Home() {
     const [concerts, setAllConcerts] = useState([]);
@@ -12,6 +13,9 @@ export default function Home() {
     const [selectedVenue, setSelectedVenue] = useState('');
     const [selectedGenre, setSelectedGenre] = useState(''); // State for selected genre
 
+    const { user } = useUser();
+            const userToken = user ? user.token : null;
+            console.log(userToken);
     useEffect(() => {
         const getAllConcerts = async () => {
             try {
