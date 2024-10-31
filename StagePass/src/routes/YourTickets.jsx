@@ -2,25 +2,38 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types'; 
 import { formatDate, formatTime } from '../utils';
 import { Link } from 'react-router-dom';
+import { useUser } from '../UserContext';
 
-export default function YourTickets({ userToken }) {
+export default function YourTickets() {
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { token } = useUser();
 
     useEffect(() => {
         const fetchTickets = async () => {
             try {
+                console.log('User token before fetch:', token); 
                 const response = await fetch('http://localhost:3000/api/user/tickets', {
                     headers: {
-                        Authorization: `Bearer ${userToken}`
+                        Authorization: `Bearer ${token}`
                     }
                 });
-    
+
+                // Log response status and body
+                console.log('Response status:', response.status);
+                console.log('Response body:', await response.clone().json());
+
+                // Handle 404 specifically
+                if (response.status === 404) {
+                    setTickets([]); // No tickets found
+                    return; // Exit the function
+                }
+
                 if (!response.ok) {
                     throw new Error('Failed to fetch tickets');
                 }
-    
+
                 const data = await response.json();
                 setTickets(data);
             } catch (error) {
@@ -28,10 +41,10 @@ export default function YourTickets({ userToken }) {
             } finally {
                 setLoading(false);
             }
-        };
+        };        
     
         fetchTickets();
-    }, [userToken]);
+    }, [token]);
 
     const handleDelete = async (reservationNumber) => {
         if (window.confirm("Are you sure you want to delete this ticket reservation?")) {
@@ -39,7 +52,7 @@ export default function YourTickets({ userToken }) {
                 const response = await fetch(`http://localhost:3000/api/reserveTickets/${reservationNumber}`, {
                     method: 'DELETE',
                     headers: {
-                        Authorization: `Bearer ${userToken}`
+                        Authorization: `Bearer ${token}`
                     }
                 });
 
@@ -67,14 +80,16 @@ export default function YourTickets({ userToken }) {
                 Upon arrival at the venue, provide your reservation number to the staff at the door and pay onsite with cash or credit.
             </p>
             {tickets.length === 0 ? (
-                <p className="text-center">You have no reserved tickets.</p>
+                <div className="text-center">
+                    <p>You have no reserved tickets.</p>
+                    <p>Check out our upcoming concerts and reserve your spot!</p>
+                    <Link to="/" className="btn btn-primary">Browse Concerts</Link>
+                </div>
             ) : (
                 <div className="row">
                     {tickets.map((ticket) => {
                         const concert = ticket.concert || {};
                         const venue = concert.venue || {};
-
-                        // Calculate the total price owed for this ticket reservation
                         const totalPrice = concert.tickets.price * ticket.quantity;
 
                         return (
@@ -88,7 +103,7 @@ export default function YourTickets({ userToken }) {
                                             <li><strong>Reservation Number:</strong> <span className="text-muted">{ticket.reservationNumber}</span></li>
                                             <li><strong>Date:</strong> <span className="text-muted">{formatDate(concert.date)}</span></li>
                                             <li><strong>Time:</strong> <span className="text-muted">{formatTime(concert.time)}</span></li>
-                                            <li><strong>Venue Address:</strong> <span className="text-muted">{venue.address}</span></li> {/* Display venue address */}
+                                            <li><strong>Venue Address:</strong> <span className="text-muted">{venue.address}</span></li>
                                             <li><strong>Ticket Type:</strong> <span className="text-muted">{ticket.ticketType}</span></li>
                                             <li><strong>Price Per Ticket:</strong> <span className="text-muted">${parseFloat(concert.tickets.price).toFixed(2)}</span></li>
                                             <li><strong>Quantity:</strong> <span className="text-muted">{ticket.quantity}</span></li>

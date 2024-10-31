@@ -87,7 +87,7 @@ app.use("/imageUploads", express.static(path.join(__dirname, 'public/imageUpload
 // Authentication middleware for protecting routes
 const authenticateToken = (req, res, next) => {
     // Extract token from Authorization header
-    const token = req.headers['authorization']?.split(' ')[1]; // Ensure this is correct
+    const token = req.headers['authorization']?.split(' ')[1];
 
     // Log the received token for debugging 
     console.log('Received token:', token); 
@@ -101,14 +101,18 @@ const authenticateToken = (req, res, next) => {
     // Verify the token
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
         if (err) {
-            console.error('Token verification error:', err.message); // Log verification errors
-            return res.status(403).json({ message: 'Forbidden: Invalid or expired token' }); // Respond with forbidden status
+            console.error('Token verification error:', err.message); 
+            return res.status(403).json({ message: 'Forbidden: Invalid or expired token' });
         }
+
+        // Log user information to debug
+        console.log('User from token:', user);
 
         req.user = user; // Attach user information to the request
         next(); 
     });
 };
+
 
 
 // API endpoints
@@ -404,7 +408,6 @@ app.get('/api/ConcertDetails/:id', async (req, res) => {
     }
 });
 
-
 // Plan a new concert endpoint - ORGANIZER
 app.post('/api/NewConcert', authenticateToken, upload.single('photo'), async (req, res) => {
     const { artist, venueId, tour, date, time, description, genre, address, rules, tickets } = req.body;
@@ -457,7 +460,6 @@ app.post('/api/NewConcert', authenticateToken, upload.single('photo'), async (re
         return res.status(500).json({ message: 'Failed to create concert.' });
     }
 });
-
 
 // Delete concert endpoint - ORGANIZER
 app.delete('/api/concertDetails/:id', async (req, res) => {
@@ -553,7 +555,6 @@ app.put('/api/ConcertDetails/:id', authenticateToken, upload.single('photo'), as
     }
 });
 
-
 // Your Concerts endpoint - ORGANIZER
 app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
     const organizerUsername = req.user?.username;
@@ -591,8 +592,6 @@ app.get('/api/YourConcerts', authenticateToken, async (req, res) => {
         return res.status(500).json({ message: 'Failed to fetch concerts' });
     }
 });
-
-
 
 // Reserve tickets for a concert
 app.post('/api/reserveTickets', authenticateToken, async (req, res) => {
@@ -673,7 +672,7 @@ app.get('/api/user/tickets', authenticateToken, async (req, res) => {
                 if (!concert) {
                     return { 
                         reservationNumber: ticket._id,
-                        error: 'Concert not found', // Handle missing concert gracefully
+                        error: 'Concert not found', 
                         quantity: ticket.numTickets
                     };
                 }
@@ -682,16 +681,16 @@ app.get('/api/user/tickets', authenticateToken, async (req, res) => {
                 const venue = await db.collection('venues').findOne({ _id: new ObjectId(concert.venueId) });
 
                 return {
-                    reservationNumber: ticket._id, // Use the reservation ID as the reservation number
+                    reservationNumber: ticket._id,
                     concert: {
-                        ...concert, // Spread concert properties
+                        ...concert,
                         venue: venue ? {
                             _id: venue._id,
                             name: venue.name,
                             address: venue.address,
-                        } : null // Handle missing venue gracefully
+                        } : null 
                     },
-                    ticketType: concert.tickets ? concert.tickets.type : 'Unknown', // Safeguard in case tickets field is missing
+                    ticketType: concert.tickets ? concert.tickets.type : 'Unknown',
                     quantity: ticket.numTickets,
                 };
             } catch (error) {
@@ -706,7 +705,7 @@ app.get('/api/user/tickets', authenticateToken, async (req, res) => {
 
         res.json(ticketsWithConcertDetails);
     } catch (error) {
-        console.error('Error fetching tickets:', error.message);
+        console.error('Error fetching tickets:', error.message); // Log the specific error
         return res.status(500).json({ message: 'Failed to fetch tickets.' });
     }
 });
@@ -746,7 +745,6 @@ app.delete('/api/reserveTickets/:id', authenticateToken, async (req, res) => {
 
 
 // Functions to Serve
-
 // Serve static files from React app
 app.use(express.static(path.join(__dirname, 'StagePass', 'build')));
 
